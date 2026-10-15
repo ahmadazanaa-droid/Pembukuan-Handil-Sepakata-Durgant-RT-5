@@ -48,7 +48,7 @@
     <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none px-4 sm:px-0"></div>
 
     <!-- LOGIN BENDAHARA -->
-    <div id="loginOverlay" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="loginOverlay" class="hidden fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div class="bg-emerald-900 text-white p-6 text-center">
                 <div class="mx-auto mb-3 w-14 h-14 rounded-2xl bg-emerald-700 flex items-center justify-center"><i class="fa-solid fa-lock text-2xl"></i></div>
@@ -3092,7 +3092,7 @@ function getDatabaseData() {
             const baseUrl = cleanBaseUrl(APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value);
             if (!baseUrl) throw new Error("URL Web App belum diisi");
 
-            const queryParams = new URLSearchParams({ action, token: sessionStorage.getItem('handilAuthToken') || '', ...params });
+            const queryParams = new URLSearchParams({ action, ...params });
             const targetUrl = `${baseUrl}?${queryParams.toString()}`;
 
             try {
@@ -3114,7 +3114,7 @@ function getDatabaseData() {
         function apiJsonp(baseUrl, action, params = {}) {
             return new Promise((resolve, reject) => {
                 const callbackName = 'gas_cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                const queryParams = new URLSearchParams({ action, token: sessionStorage.getItem('handilAuthToken') || '', callback: callbackName, ...params });
+                const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
                 const scriptUrl = `${baseUrl}?${queryParams.toString()}`;
 
                 const script = document.createElement('script');
@@ -3152,7 +3152,7 @@ function getDatabaseData() {
 
             const requestBody = JSON.stringify({
                 action: action,
-                token: action === 'login' ? '' : (sessionStorage.getItem('handilAuthToken') || ''),
+                token: '', // Mode tanpa login sementara
                 data: dataPayload
             });
 
@@ -3259,9 +3259,9 @@ function getDatabaseData() {
         });
 
         function treasurerLogout() {
+            // Login dinonaktifkan sementara; tidak ada sesi lokal yang perlu dihapus.
             sessionStorage.removeItem('handilAuthToken');
-            document.getElementById('loginOverlay').classList.remove('hidden');
-            showToast('Anda telah keluar dari sesi bendahara.', 'info');
+            showToast('Mode tanpa login aktif. Backend tetap menjadi sumber data utama.', 'info');
         }
 
         function printMeetingRecordBook() {
@@ -3301,28 +3301,23 @@ function getDatabaseData() {
         }
 
         window.onload = function() {
-            // URL default ditanam dalam aplikasi sehingga perangkat baru tidak perlu konfigurasi ulang.
-            try {
-                const savedUrl = localStorage.getItem('handilWebAppUrl');
-                if (savedUrl && savedUrl.endsWith('/exec')) APP_CONFIG.webAppUrl = savedUrl;
-                const savedMode = localStorage.getItem('handilAppMode');
-                APP_CONFIG.mode = savedMode === 'DEMO' ? 'DEMO' : 'PROD';
-            } catch (e) { APP_CONFIG.mode = 'PROD'; }
+            // Mode produksi dan URL backend menjadi default lintas perangkat.
+            // Konfigurasi backend tidak bergantung pada localStorage perangkat.
+            APP_CONFIG.mode = 'PROD';
+            try { localStorage.setItem('handilAppMode', 'PROD'); } catch (e) {}
             const urlInput = document.getElementById('webAppUrlInput');
             if (urlInput) urlInput.value = APP_CONFIG.webAppUrl;
-            const modeRadio = document.querySelector(`input[name="appModeRadio"][value="${APP_CONFIG.mode}"]`);
+            const modeRadio = document.querySelector(`input[name="appModeRadio"][value="PROD"]`);
             if (modeRadio) modeRadio.checked = true;
+            const overlay = document.getElementById('loginOverlay');
+            if (overlay) overlay.classList.add('hidden');
             const today = new Date();
             document.getElementById('currentDateDisplay').innerText = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('meetingDatePicker').value = today.toISOString().split('T')[0];
 
-            if (APP_CONFIG.mode === "DEMO") {
-                initDemoData();
-            } else {
-                clearProductionData();
-                document.getElementById('loginOverlay').classList.remove('hidden');
-                // Data produksi dimuat setelah login bendahara berhasil.
-            }
+            clearProductionData();
+            // Muat transaksi dari Google Sheets pada setiap perangkat/kunjungan.
+            fetchProductionData().then(() => refreshDataViews());
             const modeBadge = document.getElementById('appModeBadge');
             if (APP_CONFIG.mode === 'PROD' && modeBadge) {
                 modeBadge.className = "px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
