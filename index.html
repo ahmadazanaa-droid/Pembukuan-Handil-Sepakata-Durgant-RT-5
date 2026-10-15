@@ -53,7 +53,7 @@
             <div class="bg-emerald-900 text-white p-6 text-center">
                 <div class="mx-auto mb-3 w-14 h-14 rounded-2xl bg-emerald-700 flex items-center justify-center"><i class="fa-solid fa-lock text-2xl"></i></div>
                 <h2 class="text-xl font-bold">Login Bendahara</h2>
-                <p class="text-sm text-emerald-200 mt-1">ADMINISTRASI HANDIL YASINAN</p>
+                <p class="text-sm text-emerald-200 mt-1">ADMINISTRASI HANDIL Sepakat Durgant</p>
             </div>
             <form id="treasurerLoginForm" class="p-6 space-y-4">
                 <div><label for="loginUsername" class="block text-sm font-semibold mb-1">Username</label><input id="loginUsername" autocomplete="username" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Masukkan username bendahara"></div>
@@ -76,7 +76,7 @@
                         <i class="fa-solid fa-book-quran text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-base leading-tight tracking-wide text-white">HANDIL YASINAN</h1>
+                        <h1 class="font-bold text-base leading-tight tracking-wide text-white">HANDIL Sepakat Durgant</h1>
                         <p class="text-xs text-emerald-300 font-medium">Kas & Pertemuan Kampung</p>
                     </div>
                 </div>
@@ -132,7 +132,7 @@
         </div>
 
         <div class="p-4 border-t border-emerald-800 text-xs text-emerald-300 text-center">
-            Handil Yasinan &copy; 2026<br><span class="text-[10px] opacity-75">Sistem Administrasi Kampung</span>
+            Handil Sepakat Durgant &copy; 2026<br><span class="text-[10px] opacity-75">Sistem Administrasi Kampung</span>
         </div>
     </aside>
 
@@ -143,7 +143,7 @@
                 <i class="fa-solid fa-book-quran text-xl"></i>
             </div>
             <div>
-                <h1 class="font-bold text-sm leading-tight text-white">HANDIL YASINAN</h1>
+                <h1 class="font-bold text-sm leading-tight text-white">HANDIL Sepakat Durgant</h1>
                 <p class="text-[10px] text-emerald-300">Kas & Pertemuan Kampung</p>
             </div>
         </div>
@@ -160,7 +160,7 @@
                 <h2 id="pageTitle" class="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-emerald-600"></i> Dashboard Utama
                 </h2>
-                <p id="pageSubtitle" class="text-xs text-slate-500 mt-0.5">Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan</p>
+                <p id="pageSubtitle" class="text-xs text-slate-500 mt-0.5">Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Sepakat Durgant</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-xs text-slate-500 hidden sm:inline"><i class="fa-regular fa-clock mr-1"></i> <span id="currentDateDisplay">--/--/----</span></span>
@@ -579,7 +579,7 @@
                             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                                 <i class="fa-solid fa-house-user text-emerald-600"></i> Jadwal Urutan Tuan Rumah Malam Jumat
                             </h3>
-                            <p class="text-[11px] text-slate-500">Urutan giliran anggota penyelenggara pertemuan Yasinan malam Jumat</p>
+                            <p class="text-[11px] text-slate-500">Urutan giliran anggota penyelenggara pertemuan Sepakat Durgant malam Jumat</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-semibold text-slate-600">Atur Tuan Rumah Berikutnya:</span>
@@ -1223,12 +1223,12 @@
             }
 
             const titleMap = {
-                dashboard: ['Dashboard Utama', 'Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan', 'fa-chart-line'],
+                dashboard: ['Dashboard Utama', 'Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Sepakat Durgant', 'fa-chart-line'],
                 pertemuans: ['Catat Pertemuan Malam Jumat', 'Pencatatan kehadiran, sokongan wajib Rp10rb, dan tabungan sukarela', 'fa-calendar-check'],
                 anggota: ['Data Anggota Handil', 'Manajemen daftar anggota, bebas sokongan (pengurus), dan import Excel', 'fa-users'],
                 tabungan: ['Tabungan Sukarela Anggota', 'Rincian akumulasi saldo tabungan sukarela seluruh anggota', 'fa-piggy-bank'],
                 hutang: ['Hutang Kas Handil', 'Pencatatan pinjaman anggota, pembayaran cicilan, dan sisa saldo hutang', 'fa-hand-holding-dollar'],
-                tuanrumah: ['Jadwal Tuan Rumah', 'Urutan giliran anggota penyelenggara Yasinan Malam Jumat', 'fa-house-user'],
+                tuanrumah: ['Jadwal Tuan Rumah', 'Urutan giliran anggota penyelenggara Sepakat Durgant Malam Jumat', 'fa-house-user'],
                 kas: ['Buku Kas & Rekonsiliasi', 'Pencatatan arus kas masuk/keluar dan pencocokan uang fisik', 'fa-wallet'],
                 safar: ['Pembagian Tabungan Safar', 'Simulasi pemotongan tunggakan sokongan & hutang dari tabungan akhir Safar', 'fa-scale-balanced'],
                 laporan: ['Laporan & Audit Log', 'Riwayat aktivitas sistem dan audit trailing transaksi', 'fa-file-invoice-dollar'],
@@ -1838,7 +1838,7 @@
             const ws = XLSX.utils.json_to_sheet(dbState.ANGGOTA);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Anggota");
-            XLSX.writeFile(wb, "Data_Anggota_Handil_Yasinan.xlsx");
+            XLSX.writeFile(wb, "Data_Anggota_Handil_Sepakat Durgant.xlsx");
             showToast("Export data anggota ke Excel berhasil!", "success");
         }
 
@@ -2269,7 +2269,7 @@
                 PEMBAGIAN_SAFAR: [],
                 REKONSILIASI: [],
                 LOG_AKTIVITAS: [
-                    { ID_Log: 'LOG-001', Timestamp: new Date().toISOString(), Aktivitas: 'SYSTEM_INIT', ID_Anggota: '-', ID_Pertemuan: '-', ID_Transaksi: '-', Keterangan: 'Aplikasi Administrasi Handil Yasinan Berhasil Diinisialisasi (Demo)' }
+                    { ID_Log: 'LOG-001', Timestamp: new Date().toISOString(), Aktivitas: 'SYSTEM_INIT', ID_Anggota: '-', ID_Pertemuan: '-', ID_Transaksi: '-', Keterangan: 'Aplikasi Administrasi Handil Sepakat Durgant Berhasil Diinisialisasi (Demo)' }
                 ]
             };
         }
@@ -2677,7 +2677,7 @@
             const ws = XLSX.utils.json_to_sheet(dbState.LOG_AKTIVITAS);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Audit_Log");
-            XLSX.writeFile(wb, "Audit_Log_Handil_Yasinan.xlsx");
+            XLSX.writeFile(wb, "Audit_Log_Handil_Sepakat Durgant.xlsx");
             showToast("Export Audit Log ke Excel berhasil!", "success");
         }
 
@@ -2718,7 +2718,7 @@
         // FULL BACKEND GOOGLE APPS SCRIPT CODE (Code.gs)
         const GOOGLE_APPS_SCRIPT_CODE = `/**
  * ============================================================
- * BACKEND CODE: ADMINISTRASI HANDIL YASINAN
+ * BACKEND CODE: ADMINISTRASI HANDIL Sepakat Durgant
  * ============================================================
  * Google Apps Script Web App Backend & Database API
  * 
@@ -3291,7 +3291,7 @@ function getDatabaseData() {
             if (!w) { showToast('Jendela cetak diblokir browser. Izinkan pop-up untuk mencetak.', 'error'); return; }
             w.document.write(`<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Buku Catatan Handil - ${esc(date)}</title><style>
                 @page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;color:#111;font-size:10pt}h1,h2,p{text-align:center;margin:4px 0}h1{font-size:16pt}h2{font-size:12pt}.meta{margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.line{border-bottom:1px solid #777;display:inline-block;min-width:140px;height:16px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #444;padding:5px 4px}th{background:#eee;font-size:8pt}.num{text-align:right;white-space:nowrap}.summary{margin-top:14px;width:55%;margin-left:auto}.summary td:first-child{font-weight:bold}.sign{display:flex;justify-content:space-around;margin-top:35px;text-align:center}.sign div{width:40%}.note{margin-top:16px;color:#444;font-size:8pt}@media print{button{display:none}}
-            </style></head><body><h1>BUKU CATATAN HANDIL YASINAN</h1><h2>Catatan Pertemuan Malam Jumat</h2>
+            </style></head><body><h1>BUKU CATATAN HANDIL Sepakat Durgant</h1><h2>Catatan Pertemuan Malam Jumat</h2>
             <div class="meta"><div>Tanggal: <b>${esc(date || '-')}</b></div><div>ID Pertemuan: <b>${esc(meeting.ID_Pertemuan || '-')}</b></div><div>Tuan rumah: <b>${esc(host?.Nama || '-')}</b></div><div>Status: <b>${esc(meeting.Status || 'DRAFT / BELUM TERSIMPAN')}</b></div></div>
             <table><thead><tr><th>No.</th><th>Nama Anggota</th><th>Hadir</th><th>Kewajiban</th><th>Bayar Sokongan</th><th>Tunggakan*</th><th>Tabungan</th><th>Paraf</th></tr></thead><tbody>${rows || '<tr><td colspan="8">Belum ada data anggota.</td></tr>'}</tbody></table>
             <table class="summary"><tbody><tr><td>Total sokongan masuk</td><td class="num">${money(totalSokongan)}</td></tr><tr><td>Total tabungan masuk</td><td class="num">${money(totalTabungan)}</td></tr><tr><td>Biaya konsumsi</td><td class="num">${money(konsumsi)}</td></tr><tr><td>Total bersih kas*</td><td class="num">${money(totalSokongan-konsumsi)}</td></tr></tbody></table>
