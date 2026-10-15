@@ -1332,7 +1332,26 @@
         function getMemberCurrentSokonganDue(idAnggota) {
             const member = dbState.ANGGOTA.find(m => m.ID_Anggota === idAnggota);
             if (!member || member.Bebas_Sokongan === 'YA') return 0;
+            // Tagihan malam ini = tunggakan dari pertemuan lain + kewajiban malam ini.
             return getMemberCumulativeArrears(idAnggota, currentMeetingState.ID_Pertemuan) + APP_CONFIG.defaultWeeklyContribution;
+        }
+
+        // ATURAN UTAMA: status HADIR berarti membayar seluruh tagihan (termasuk tunggakan).
+        // Status TIDAK HADIR berarti tidak membayar dan kewajiban pekan ini menambah tunggakan.
+        // Status kehadiran menjadi sumber keputusan, bukan flag ManualEdited lama.
+        function syncPaymentWithAttendance(idAnggota) {
+            const row = currentMeetingState.attendanceMap[idAnggota];
+            const member = dbState.ANGGOTA.find(m => m.ID_Anggota === idAnggota);
+            if (!row || !member) return;
+            if (member.Bebas_Sokongan === 'YA') {
+                row.BayarSokongan = 0;
+                row.ManualEdited = false;
+                return;
+            }
+            row.BayarSokongan = row.Hadir
+                ? getMemberCumulativeArrears(idAnggota, currentMeetingState.ID_Pertemuan) + APP_CONFIG.defaultWeeklyContribution
+                : 0;
+            row.ManualEdited = false;
         }
 
         // MEETING PRESENSI RECORDING & RECAP
@@ -1365,13 +1384,10 @@
 
         function setAllAttendance(isHadir) {
             dbState.ANGGOTA.forEach(m => {
-                if (currentMeetingState.attendanceMap[m.ID_Anggota]) {
-                    const isExempt = m.Bebas_Sokongan === "YA";
-                    currentMeetingState.attendanceMap[m.ID_Anggota].Hadir = isHadir;
-                    if (!currentMeetingState.attendanceMap[m.ID_Anggota].ManualEdited) {
-                        currentMeetingState.attendanceMap[m.ID_Anggota].BayarSokongan = isExempt ? 0 : (isHadir ? getMemberCurrentSokonganDue(m.ID_Anggota) : 0);
-                    }
-                }
+                const row = currentMeetingState.attendanceMap[m.ID_Anggota];
+                if (!row) return;
+                row.Hadir = isHadir;
+                syncPaymentWithAttendance(m.ID_Anggota);
             });
             renderMeetingAttendanceTable();
         }
@@ -1379,14 +1395,8 @@
         function toggleAttendance(idAnggota) {
             const row = currentMeetingState.attendanceMap[idAnggota];
             if (!row) return;
-
-            const member = dbState.ANGGOTA.find(m => m.ID_Anggota === idAnggota);
-            const isExempt = member && member.Bebas_Sokongan === "YA";
-
             row.Hadir = !row.Hadir;
-            if (!row.ManualEdited) {
-                row.BayarSokongan = isExempt ? 0 : (row.Hadir ? getMemberCurrentSokonganDue(idAnggota) : 0);
-            }
+            syncPaymentWithAttendance(idAnggota);
             renderMeetingAttendanceTable();
         }
 
@@ -2470,6 +2480,11 @@
                     Tabungan: tabungan,
                     ManualEdited: existingSok ? true : false
                 };
+                // Untuk draft yang masih OPEN, sinkronkan pembayaran mengikuti status hadir/absen.
+                // Pertemuan CLOSED tidak diubah karena merupakan arsip final.
+                if (currentMeetingState.Status !== 'CLOSED') {
+                    syncPaymentWithAttendance(m.ID_Anggota);
+                }
             });
 
             renderMeetingAttendanceTable();
