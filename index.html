@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HANDIL SEPAKAT DURIAN GANTANG - Sistem Kas & Pertemuan Handil Kampung</title>
+    <title>ADMINISTRASI HANDIL SEPAKAT DURGANT - Sistem Kas & Pertemuan Handil Kampung</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -46,7 +46,25 @@
 
     <!-- Notification Toast Container -->
     <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none px-4 sm:px-0"></div>
-    <!-- Login sementara dinonaktifkan untuk pengujian backend. -->
+
+    <!-- LOGIN BENDAHARA -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-emerald-900 text-white p-6 text-center">
+                <div class="mx-auto mb-3 w-14 h-14 rounded-2xl bg-emerald-700 flex items-center justify-center"><i class="fa-solid fa-lock text-2xl"></i></div>
+                <h2 class="text-xl font-bold">Login Bendahara</h2>
+                <p class="text-sm text-emerald-200 mt-1">ADMINISTRASI HANDIL YASINAN</p>
+            </div>
+            <form id="treasurerLoginForm" class="p-6 space-y-4">
+                <div><label for="loginUsername" class="block text-sm font-semibold mb-1">Username</label><input id="loginUsername" autocomplete="username" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Masukkan username bendahara"></div>
+                <div><label for="loginPassword" class="block text-sm font-semibold mb-1">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500" placeholder="Masukkan password"></div>
+                <p id="loginError" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-3"></p>
+                <button id="loginSubmitButton" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl py-3"><i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk</button>
+                <p class="text-[11px] text-slate-500 text-center">Akses hanya untuk bendahara yang telah didaftarkan pada backend.</p>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Sidebar Navigation -->
     <aside id="sidebar" class="w-full md:w-64 bg-emerald-900 text-white flex-shrink-0 flex flex-col justify-between hidden md:flex transition-all duration-300 z-30 shadow-xl">
@@ -58,7 +76,7 @@
                         <i class="fa-solid fa-book-quran text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-base leading-tight tracking-wide text-white">HANDIL SEPAKAT DURIAN GANTANG</h1>
+                        <h1 class="font-bold text-base leading-tight tracking-wide text-white">HANDIL YASINAN</h1>
                         <p class="text-xs text-emerald-300 font-medium">Kas & Pertemuan Kampung</p>
                     </div>
                 </div>
@@ -114,7 +132,7 @@
         </div>
 
         <div class="p-4 border-t border-emerald-800 text-xs text-emerald-300 text-center">
-            Handil Sepakat Durian Gantang &copy; 2026<br><span class="text-[10px] opacity-75">Sistem Administrasi Kampung</span>
+            Handil Yasinan &copy; 2026<br><span class="text-[10px] opacity-75">Sistem Administrasi Kampung</span>
         </div>
     </aside>
 
@@ -125,7 +143,7 @@
                 <i class="fa-solid fa-book-quran text-xl"></i>
             </div>
             <div>
-                <h1 class="font-bold text-sm leading-tight text-white">HANDIL SEPAKAT DURIAN GANTANG</h1>
+                <h1 class="font-bold text-sm leading-tight text-white">HANDIL YASINAN</h1>
                 <p class="text-[10px] text-emerald-300">Kas & Pertemuan Kampung</p>
             </div>
         </div>
@@ -142,7 +160,7 @@
                 <h2 id="pageTitle" class="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-chart-line text-emerald-600"></i> Dashboard Utama
                 </h2>
-                <p id="pageSubtitle" class="text-xs text-slate-500 mt-0.5">Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Sepakat Durian Gantang</p>
+                <p id="pageSubtitle" class="text-xs text-slate-500 mt-0.5">Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-xs text-slate-500 hidden sm:inline"><i class="fa-regular fa-clock mr-1"></i> <span id="currentDateDisplay">--/--/----</span></span>
@@ -1114,13 +1132,13 @@
     <!-- APPLICATION JAVASCRIPT & BACKEND BRIDGE -->
     <script>
         // GLOBAL APP CONFIGURATION & STATE
-        // Konfigurasi disimpan di browser agar URL dan mode tidak hilang saat halaman dibuka ulang.
-        // Jika browser belum pernah dikonfigurasi, aplikasi tetap DEMO agar tidak salah menulis ke produksi.
+        const HANDIL_BACKEND_URL = "https://script.google.com/macros/s/AKfycbwYFvM__Wa2ZvI94rEiUGZASvu6MBoHn82YtK5knbmo0dn7c-hZGQxn0g7pBG3cW9BKAA/exec";
         const APP_CONFIG = {
-            mode: (localStorage.getItem('handilAppMode') === 'PROD' && localStorage.getItem('handilWebAppUrl')) ? 'PROD' : 'DEMO',
+            // Produksi menjadi mode awal pada semua perangkat; demo hanya dipilih manual.
+            mode: "PROD", // DEMO | PROD
             defaultWeeklyContribution: 10000,
             defaultConsumptionCost: 300000,
-            webAppUrl: localStorage.getItem('handilWebAppUrl') || ''
+            webAppUrl: HANDIL_BACKEND_URL
         };
 
         let dbState = {
@@ -1205,7 +1223,7 @@
             }
 
             const titleMap = {
-                dashboard: ['Dashboard Utama', 'Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Sepakat Durian Gantang', 'fa-chart-line'],
+                dashboard: ['Dashboard Utama', 'Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan', 'fa-chart-line'],
                 pertemuans: ['Catat Pertemuan Malam Jumat', 'Pencatatan kehadiran, sokongan wajib Rp10rb, dan tabungan sukarela', 'fa-calendar-check'],
                 anggota: ['Data Anggota Handil', 'Manajemen daftar anggota, bebas sokongan (pengurus), dan import Excel', 'fa-users'],
                 tabungan: ['Tabungan Sukarela Anggota', 'Rincian akumulasi saldo tabungan sukarela seluruh anggota', 'fa-piggy-bank'],
@@ -1231,9 +1249,7 @@
 
         function changeAppMode(mode) {
             APP_CONFIG.mode = mode;
-            localStorage.setItem('handilAppMode', mode);
-            const selectedRadio = document.querySelector(`input[name="appModeRadio"][value="${mode}"]`);
-            if (selectedRadio) selectedRadio.checked = true;
+            try { localStorage.setItem('handilAppMode', mode); } catch (e) {}
             const badge = document.getElementById('appModeBadge');
 
             if (mode === 'PROD') {
@@ -1610,7 +1626,6 @@
             }
 
             loadMeetingForDate();
-            if (APP_CONFIG.mode === 'PROD' && APP_CONFIG.webAppUrl) fetchProductionData();
             refreshDataViews();
         }
 
@@ -1673,7 +1688,6 @@
 
             refreshDataViews();
             loadMeetingForDate();
-            if (APP_CONFIG.mode === 'PROD' && APP_CONFIG.webAppUrl) fetchProductionData();
         }
 
         function openImportExcelModal() {
@@ -1818,7 +1832,6 @@
 
             refreshDataViews();
             loadMeetingForDate();
-            if (APP_CONFIG.mode === 'PROD' && APP_CONFIG.webAppUrl) fetchProductionData();
         }
 
         function exportMembersToExcel() {
@@ -2204,7 +2217,6 @@
 
             refreshDataViews();
             loadMeetingForDate();
-            if (APP_CONFIG.mode === 'PROD' && APP_CONFIG.webAppUrl) fetchProductionData();
         }
 
         // INITIAL DEMO DATA GENERATOR
@@ -2257,7 +2269,7 @@
                 PEMBAGIAN_SAFAR: [],
                 REKONSILIASI: [],
                 LOG_AKTIVITAS: [
-                    { ID_Log: 'LOG-001', Timestamp: new Date().toISOString(), Aktivitas: 'SYSTEM_INIT', ID_Anggota: '-', ID_Pertemuan: '-', ID_Transaksi: '-', Keterangan: 'Aplikasi Administrasi Handil Sepakat Durian Gantang Berhasil Diinisialisasi (Demo)' }
+                    { ID_Log: 'LOG-001', Timestamp: new Date().toISOString(), Aktivitas: 'SYSTEM_INIT', ID_Anggota: '-', ID_Pertemuan: '-', ID_Transaksi: '-', Keterangan: 'Aplikasi Administrasi Handil Yasinan Berhasil Diinisialisasi (Demo)' }
                 ]
             };
         }
@@ -2706,22 +2718,14 @@
         // FULL BACKEND GOOGLE APPS SCRIPT CODE (Code.gs)
         const GOOGLE_APPS_SCRIPT_CODE = `/**
  * ============================================================
- * BACKEND CODE: HANDIL SEPAKAT DURIAN GANTANG
+ * BACKEND CODE: ADMINISTRASI HANDIL YASINAN
  * ============================================================
  * Google Apps Script Web App Backend & Database API
  * 
  * ATURAN DEPLOYMENT WAJIB:
  * 1. Execute as (Jalankan sebagai): Me / Saya
  * 2. Who has access (Akses): Anyone / Siapa saja
- * 3. Isi SPREADSHEET_ID dengan ID spreadsheet database yang benar.
  */
-const SPREADSHEET_ID = '1VLhSMpWgXdhDkt3xWCPNxQUd_VyygofCDu1YQIDbRsY';
-function getDatabaseSpreadsheet_() {
-  if (!SPREADSHEET_ID || SPREADSHEET_ID.indexOf('GANTI_') === 0) {
-    throw new Error('SPREADSHEET_ID belum dikonfigurasi pada Code.gs.');
-  }
-  return SpreadsheetApp.openById(SPREADSHEET_ID);
-}
 
 function doGet(e) {
   const action = e ? e.parameter.action : '';
@@ -2729,13 +2733,13 @@ function doGet(e) {
   let result = { status: 'SUCCESS', message: 'Google Apps Script terhubung.' };
   
   try {
+    if (action !== 'ping' && !isValidTreasurerToken_(e && e.parameter.token)) {
+      throw new Error('Sesi tidak valid atau telah berakhir. Silakan login kembali.');
+    }
     if (action === 'getDatabase') {
-      setupDatabase(); // Menyiapkan sheet/header secara non-destruktif sebelum membaca data
       result = { status: 'SUCCESS', data: getDatabaseData() };
     } else if (action === 'ping') {
-      const ss = getDatabaseSpreadsheet_();
-      setupDatabase(); // Membuat sheet yang belum ada tanpa menghapus data lama
-      result = { status: 'SUCCESS', message: 'Backend terhubung ke spreadsheet: ' + ss.getName(), spreadsheetId: ss.getId() };
+      result = { status: 'SUCCESS', message: 'Google Apps Script terhubung.' };
     } else {
       result = { status: 'SUCCESS', data: getDatabaseData() };
     }
@@ -2758,8 +2762,15 @@ function doPost(e) {
     const postData = JSON.parse(e.postData.contents);
     const action = postData.action;
     const payload = postData.data || {};
-    const ss = getDatabaseSpreadsheet_();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+    if (action === 'login') {
+      const loginResult = authenticateTreasurer_(payload.username, payload.password);
+      return ContentService.createTextOutput(JSON.stringify(loginResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (!isValidTreasurerToken_(postData.token)) {
+      throw new Error('Sesi tidak valid atau telah berakhir. Silakan login kembali.');
+    }
     setupDatabase(); // Non-destructive header setup
 
     let result = { status: 'SUCCESS', message: 'Data berhasil diproses' };
@@ -2785,7 +2796,7 @@ function doPost(e) {
     } else if (action === 'writeAuditLog') {
       appendObjectToSheet(ss, 'LOG_AKTIVITAS', payload, getHeaders('LOG_AKTIVITAS'));
     } else if (action === 'resetAllData') {
-      throw new Error('Reset data dinonaktifkan demi keamanan database produksi.');
+      resetAllDataBackend(ss);
     } else {
       result = { status: 'ERROR', message: 'Action tidak dikenal: ' + action };
     }
@@ -2822,12 +2833,12 @@ function sha256Hex_(value) {
 }
 // Ganti nilai username dan password di bawah ini, lalu jalankan fungsi ini satu kali dari editor Apps Script.
 function setInitialTreasurerCredentials() {
-  const username = 'azanbendahara01';
-  const password = '14481449H';
-  const props = PropertiesService.getScriptProperties();
-  if (props.getProperty('HANDIL_TREASURER_USERNAME') || props.getProperty('HANDIL_TREASURER_PASSWORD_SHA256')) {
-    throw new Error('Kredensial bendahara sudah pernah diatur. Fungsi dihentikan agar tidak menimpa akun yang ada.');
+  const username = 'ganti_username_bendahara';
+  const password = 'GANTI_DENGAN_PASSWORD_KUAT_MINIMAL_12_KARAKTER';
+  if (username.indexOf('ganti_') === 0 || password.indexOf('GANTI_') === 0 || password.length < 12) {
+    throw new Error('Edit username dan password awal pada fungsi setInitialTreasurerCredentials() terlebih dahulu.');
   }
+  const props = PropertiesService.getScriptProperties();
   props.setProperty('HANDIL_TREASURER_USERNAME', username);
   props.setProperty('HANDIL_TREASURER_PASSWORD_SHA256', sha256Hex_(password));
 }
@@ -2925,7 +2936,7 @@ function getHeaders(sheetName) {
 }
 
 function setupDatabase() {
-  const ss = getDatabaseSpreadsheet_();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ['SETTINGS', 'ANGGOTA', 'PERTEMUAN', 'KEHADIRAN', 'SOKONGAN_WAJIB', 'TABUNGAN', 'HUTANG_HANDIL', 'PEMBAYARAN_HUTANG', 'KAS', 'JADWAL_TUAN_RUMAH', 'PEMBAGIAN_SAFAR', 'REKONSILIASI', 'LOG_AKTIVITAS'];
   sheets.forEach(s => getOrCreateSheet(ss, s, getHeaders(s)));
 }
@@ -2944,7 +2955,7 @@ function getOrCreateSheet(ss, name, headers) {
 }
 
 function sheetToObjects(sheetName) {
-  const ss = getDatabaseSpreadsheet_();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(sheetName);
   if (!sheet) return [];
   const values = sheet.getDataRange().getValues();
@@ -3081,7 +3092,7 @@ function getDatabaseData() {
             const baseUrl = cleanBaseUrl(APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value);
             if (!baseUrl) throw new Error("URL Web App belum diisi");
 
-            const queryParams = new URLSearchParams({ action, ...params });
+            const queryParams = new URLSearchParams({ action, token: sessionStorage.getItem('handilAuthToken') || '', ...params });
             const targetUrl = `${baseUrl}?${queryParams.toString()}`;
 
             try {
@@ -3103,7 +3114,7 @@ function getDatabaseData() {
         function apiJsonp(baseUrl, action, params = {}) {
             return new Promise((resolve, reject) => {
                 const callbackName = 'gas_cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-                const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
+                const queryParams = new URLSearchParams({ action, token: sessionStorage.getItem('handilAuthToken') || '', callback: callbackName, ...params });
                 const scriptUrl = `${baseUrl}?${queryParams.toString()}`;
 
                 const script = document.createElement('script');
@@ -3139,7 +3150,11 @@ function getDatabaseData() {
             const baseUrl = cleanBaseUrl(APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value);
             if (!baseUrl) throw new Error("URL Web App belum diisi");
 
-            const requestBody = JSON.stringify({ action: action, data: dataPayload });
+            const requestBody = JSON.stringify({
+                action: action,
+                token: action === 'login' ? '' : (sessionStorage.getItem('handilAuthToken') || ''),
+                data: dataPayload
+            });
 
             const response = await fetch(baseUrl, {
                 method: 'POST',
@@ -3161,15 +3176,18 @@ function getDatabaseData() {
         }
 
         function saveWebAppUrl() {
-            const url = document.getElementById('webAppUrlInput').value.trim();
-            if (!/^https:\/\/script\.google\.com\/macros\/s\/[^\s]+\/exec(?:\?.*)?$/.test(url)) {
-                showToast("Masukkan URL Web App Google Apps Script yang valid dan berakhiran /exec.", "error");
+            const url = document.getElementById('webAppUrlInput').value.trim() || HANDIL_BACKEND_URL;
+            if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(url)) {
+                showToast("URL harus berupa URL Web App Google Apps Script yang berakhiran /exec.", "error");
                 return;
             }
             APP_CONFIG.webAppUrl = url.split('?')[0];
-            localStorage.setItem('handilWebAppUrl', APP_CONFIG.webAppUrl);
+            try {
+                localStorage.setItem('handilWebAppUrl', APP_CONFIG.webAppUrl);
+                localStorage.setItem('handilAppMode', APP_CONFIG.mode);
+            } catch (e) {}
             document.getElementById('webAppUrlInput').value = APP_CONFIG.webAppUrl;
-            showToast("URL Web App tersimpan di browser ini. Pilih Mode Produksi lalu tes koneksi.", "success");
+            showToast("URL backend berhasil disimpan pada browser ini. URL default juga tertanam di aplikasi.", "success");
         }
 
         async function testBackendConnection() {
@@ -3210,6 +3228,42 @@ function getDatabaseData() {
             }
         }
 
+        // LOGIN BENDAHARA: autentikasi diverifikasi oleh backend Apps Script.
+        document.getElementById('treasurerLoginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const button = document.getElementById('loginSubmitButton');
+            const errorBox = document.getElementById('loginError');
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memeriksa...';
+            errorBox.classList.add('hidden');
+            try {
+                if (!APP_CONFIG.webAppUrl) throw new Error('URL Google Apps Script belum diatur. Atur URL pada konfigurasi aplikasi terlebih dahulu.');
+                const result = await apiPost('login', {
+                    username: document.getElementById('loginUsername').value.trim(),
+                    password: document.getElementById('loginPassword').value
+                });
+                if (!result || result.status !== 'SUCCESS' || !result.token) throw new Error((result && result.message) || 'Login gagal.');
+                sessionStorage.setItem('handilAuthToken', result.token);
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('loginPassword').value = '';
+                showToast('Login bendahara berhasil.', 'success');
+                if (APP_CONFIG.mode === 'PROD') await fetchProductionData();
+                else { initDemoData(); refreshDataViews(); }
+            } catch (error) {
+                errorBox.textContent = error.message || 'Login gagal. Periksa username dan password.';
+                errorBox.classList.remove('hidden');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i>Masuk';
+            }
+        });
+
+        function treasurerLogout() {
+            sessionStorage.removeItem('handilAuthToken');
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            showToast('Anda telah keluar dari sesi bendahara.', 'info');
+        }
+
         function printMeetingRecordBook() {
             const date = document.getElementById('meetingDatePicker')?.value || currentMeetingState?.Tanggal || '';
             const meeting = (dbState.PERTEMUAN || []).find(x => x.Tanggal === date) || currentMeetingState || {};
@@ -3237,7 +3291,7 @@ function getDatabaseData() {
             if (!w) { showToast('Jendela cetak diblokir browser. Izinkan pop-up untuk mencetak.', 'error'); return; }
             w.document.write(`<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Buku Catatan Handil - ${esc(date)}</title><style>
                 @page{size:A4 portrait;margin:12mm}body{font-family:Arial,sans-serif;color:#111;font-size:10pt}h1,h2,p{text-align:center;margin:4px 0}h1{font-size:16pt}h2{font-size:12pt}.meta{margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.line{border-bottom:1px solid #777;display:inline-block;min-width:140px;height:16px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #444;padding:5px 4px}th{background:#eee;font-size:8pt}.num{text-align:right;white-space:nowrap}.summary{margin-top:14px;width:55%;margin-left:auto}.summary td:first-child{font-weight:bold}.sign{display:flex;justify-content:space-around;margin-top:35px;text-align:center}.sign div{width:40%}.note{margin-top:16px;color:#444;font-size:8pt}@media print{button{display:none}}
-            </style></head><body><h1>BUKU CATATAN HANDIL SEPAKAT DURIAN GANTANG</h1><h2>Catatan Pertemuan Malam Jumat</h2>
+            </style></head><body><h1>BUKU CATATAN HANDIL YASINAN</h1><h2>Catatan Pertemuan Malam Jumat</h2>
             <div class="meta"><div>Tanggal: <b>${esc(date || '-')}</b></div><div>ID Pertemuan: <b>${esc(meeting.ID_Pertemuan || '-')}</b></div><div>Tuan rumah: <b>${esc(host?.Nama || '-')}</b></div><div>Status: <b>${esc(meeting.Status || 'DRAFT / BELUM TERSIMPAN')}</b></div></div>
             <table><thead><tr><th>No.</th><th>Nama Anggota</th><th>Hadir</th><th>Kewajiban</th><th>Bayar Sokongan</th><th>Tunggakan*</th><th>Tabungan</th><th>Paraf</th></tr></thead><tbody>${rows || '<tr><td colspan="8">Belum ada data anggota.</td></tr>'}</tbody></table>
             <table class="summary"><tbody><tr><td>Total sokongan masuk</td><td class="num">${money(totalSokongan)}</td></tr><tr><td>Total tabungan masuk</td><td class="num">${money(totalTabungan)}</td></tr><tr><td>Biaya konsumsi</td><td class="num">${money(konsumsi)}</td></tr><tr><td>Total bersih kas*</td><td class="num">${money(totalSokongan-konsumsi)}</td></tr></tbody></table>
@@ -3247,16 +3301,16 @@ function getDatabaseData() {
         }
 
         window.onload = function() {
-            // Pulihkan konfigurasi backend dari browser; login dinonaktifkan sementara untuk uji persistensi.
-            const savedUrl = localStorage.getItem('handilWebAppUrl') || '';
-            if (savedUrl) {
-                APP_CONFIG.webAppUrl = savedUrl;
-                const urlInput = document.getElementById('webAppUrlInput');
-                if (urlInput) urlInput.value = savedUrl;
-            }
-            const initialMode = (localStorage.getItem('handilAppMode') === 'PROD' && savedUrl) ? 'PROD' : 'DEMO';
-            APP_CONFIG.mode = initialMode;
-            const modeRadio = document.querySelector(`input[name="appModeRadio"][value="${initialMode}"]`);
+            // URL default ditanam dalam aplikasi sehingga perangkat baru tidak perlu konfigurasi ulang.
+            try {
+                const savedUrl = localStorage.getItem('handilWebAppUrl');
+                if (savedUrl && savedUrl.endsWith('/exec')) APP_CONFIG.webAppUrl = savedUrl;
+                const savedMode = localStorage.getItem('handilAppMode');
+                APP_CONFIG.mode = savedMode === 'DEMO' ? 'DEMO' : 'PROD';
+            } catch (e) { APP_CONFIG.mode = 'PROD'; }
+            const urlInput = document.getElementById('webAppUrlInput');
+            if (urlInput) urlInput.value = APP_CONFIG.webAppUrl;
+            const modeRadio = document.querySelector(`input[name="appModeRadio"][value="${APP_CONFIG.mode}"]`);
             if (modeRadio) modeRadio.checked = true;
             const today = new Date();
             document.getElementById('currentDateDisplay').innerText = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -3266,12 +3320,13 @@ function getDatabaseData() {
                 initDemoData();
             } else {
                 clearProductionData();
-                const badge = document.getElementById('appModeBadge');
-                if (badge) {
-                    badge.className = "px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-                    badge.innerHTML = `<i class="fa-solid fa-cloud mr-1"></i> PRODUKSI`;
-                }
-                // Data produksi dibaca langsung dari backend; tidak membuat data demo.
+                document.getElementById('loginOverlay').classList.remove('hidden');
+                // Data produksi dimuat setelah login bendahara berhasil.
+            }
+            const modeBadge = document.getElementById('appModeBadge');
+            if (APP_CONFIG.mode === 'PROD' && modeBadge) {
+                modeBadge.className = "px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                modeBadge.innerHTML = `<i class="fa-solid fa-cloud mr-1"></i> PRODUKSI`;
             }
 
             populateGasCodeDisplay();
@@ -3285,7 +3340,6 @@ function getDatabaseData() {
             }
 
             loadMeetingForDate();
-            if (APP_CONFIG.mode === 'PROD' && APP_CONFIG.webAppUrl) fetchProductionData();
             refreshDataViews();
         };
     </script>
