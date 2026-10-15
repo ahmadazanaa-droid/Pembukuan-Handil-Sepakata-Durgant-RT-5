@@ -1,0 +1,3178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMINISTRASI HANDIL SEPAKAT DURGANT - Sistem Kas & Pertemuan Handil Kampung</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Import/Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row custom-scrollbar">
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-full md:w-64 bg-emerald-900 text-white flex-shrink-0 flex flex-col justify-between hidden md:flex transition-all duration-300 z-30 shadow-xl">
+        <div>
+            <!-- App Header Title -->
+            <div class="p-5 border-b border-emerald-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-700 p-2.5 rounded-xl shadow-inner text-emerald-100">
+                        <i class="fa-solid fa-book-quran text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-base leading-tight tracking-wide text-white">HANDIL YASINAN</h1>
+                        <p class="text-xs text-emerald-300 font-medium">Kas & Pertemuan Kampung</p>
+                    </div>
+                </div>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-emerald-200 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Mode Badge -->
+            <div class="px-5 py-3 bg-emerald-950/60 flex items-center justify-between text-xs border-b border-emerald-800/50">
+                <span class="text-emerald-300 font-medium">Mode Aplikasi:</span>
+                <span id="appModeBadge" class="px-2.5 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <i class="fa-solid fa-flask mr-1"></i> DEMO
+                </span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-3 space-y-1 text-sm overflow-y-auto max-h-[calc(100vh-180px)] custom-scrollbar">
+                <div class="px-3 py-2 text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Menu Utama</div>
+                <a href="#" onclick="switchTab('dashboard'); return false;" id="nav-dashboard" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 bg-emerald-800">
+                    <i class="fa-solid fa-chart-line w-5 text-center text-emerald-300"></i> Dashboard
+                </a>
+                <a href="#" onclick="switchTab('pertemuans'); return false;" id="nav-pertemuans" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-calendar-check w-5 text-center text-emerald-300"></i> Catat Pertemuan
+                </a>
+                <a href="#" onclick="switchTab('anggota'); return false;" id="nav-anggota" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-users w-5 text-center text-emerald-300"></i> Data Anggota
+                </a>
+                <a href="#" onclick="switchTab('tabungan'); return false;" id="nav-tabungan" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-piggy-bank w-5 text-center text-emerald-300"></i> Tabungan Sukarela
+                </a>
+                <a href="#" onclick="switchTab('hutang'); return false;" id="nav-hutang" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-hand-holding-dollar w-5 text-center text-emerald-300"></i> Hutang Handil
+                </a>
+                <a href="#" onclick="switchTab('tuanrumah'); return false;" id="nav-tuanrumah" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-house-user w-5 text-center text-emerald-300"></i> Jadwal Tuan Rumah
+                </a>
+                <a href="#" onclick="switchTab('kas'); return false;" id="nav-kas" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-wallet w-5 text-center text-emerald-300"></i> Buku Kas & Rekonsiliasi
+                </a>
+
+                <div class="pt-3 px-3 py-2 text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Akhir Periode & Audit</div>
+                <a href="#" onclick="switchTab('safar'); return false;" id="nav-safar" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-scale-balanced w-5 text-center text-emerald-300"></i> Pembagian Safar
+                </a>
+                <a href="#" onclick="switchTab('laporan'); return false;" id="nav-laporan" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-emerald-300"></i> Laporan & Audit Log
+                </a>
+                <a href="#" onclick="switchTab('pengaturan'); return false;" id="nav-pengaturan" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-colors font-medium text-emerald-100 hover:bg-emerald-800">
+                    <i class="fa-solid fa-gears w-5 text-center text-emerald-300"></i> Pengaturan & Backend
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-emerald-800 text-xs text-emerald-300 text-center">
+            Handil Yasinan &copy; 2026<br><span class="text-[10px] opacity-75">Sistem Administrasi Kampung</span>
+        </div>
+    </aside>
+
+    <!-- Mobile Navigation Topbar -->
+    <header class="md:hidden bg-emerald-900 text-white p-4 flex items-center justify-between sticky top-0 z-40 shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-700 p-2 rounded-lg text-emerald-100">
+                <i class="fa-solid fa-book-quran text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm leading-tight text-white">HANDIL YASINAN</h1>
+                <p class="text-[10px] text-emerald-300">Kas & Pertemuan Kampung</p>
+            </div>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-white bg-emerald-800 px-3 py-1.5 rounded-lg text-sm border border-emerald-700 flex items-center gap-2">
+            <i class="fa-solid fa-bars"></i> Menu
+        </button>
+    </header>
+
+    <!-- Main Content Layout Window -->
+    <main class="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto custom-scrollbar">
+        <!-- Top Toolbar Header -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div>
+                <h2 id="pageTitle" class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-emerald-600"></i> Dashboard Utama
+                </h2>
+                <p id="pageSubtitle" class="text-xs text-slate-500 mt-0.5">Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-500 hidden sm:inline"><i class="fa-regular fa-clock mr-1"></i> <span id="currentDateDisplay">--/--/----</span></span>
+                <button onclick="refreshData()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i> Refresh Data
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Canvas Container -->
+        <div id="contentCanvas" class="p-4 md:p-6 flex-1 space-y-6">
+
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Summary Metrics Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Kas Komunitas -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-6 -mt-6 pointer-events-none"></div>
+                        <div class="flex items-center justify-between relative z-10">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kas Komunitas</p>
+                                <h3 id="dashKasKomunitas" class="text-xl font-bold text-emerald-700 mt-1">Rp0</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">Saldo bersih organisasi Handil</p>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dana Tabungan Anggota -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-6 -mt-6 pointer-events-none"></div>
+                        <div class="flex items-center justify-between relative z-10">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tabungan Anggota</p>
+                                <h3 id="dashTabunganAnggota" class="text-xl font-bold text-blue-700 mt-1">Rp0</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">Hak anggota (Titipan)</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-piggy-bank"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hutang Anggota -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-6 -mt-6 pointer-events-none"></div>
+                        <div class="flex items-center justify-between relative z-10">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sisa Hutang Anggota</p>
+                                <h3 id="dashHutangAnggota" class="text-xl font-bold text-amber-700 mt-1">Rp0</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">Pinjaman belum lunas</p>
+                            </div>
+                            <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tunggakan Sokongan -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-6 -mt-6 pointer-events-none"></div>
+                        <div class="flex items-center justify-between relative z-10">
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tunggakan Sokongan</p>
+                                <h3 id="dashTunggakanSokongan" class="text-xl font-bold text-rose-700 mt-1">Rp0</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">Akumulasi iuran belum bayar</p>
+                            </div>
+                            <div class="w-12 h-12 bg-rose-100 text-rose-700 rounded-xl flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Uang Fisik Banner -->
+                <div class="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4 border border-emerald-700">
+                    <div class="space-y-1">
+                        <span class="px-3 py-1 bg-emerald-700/60 rounded-full text-xs font-medium text-emerald-200 border border-emerald-600/50">
+                            <i class="fa-solid fa-coins mr-1"></i> Total Uang Fisik Di Tangan Bendahara
+                        </span>
+                        <h2 id="dashTotalUangFisik" class="text-3xl font-extrabold tracking-tight mt-2">Rp0</h2>
+                        <p class="text-xs text-emerald-200">(Kas Komunitas + Total Tabungan Anggota) yang wajib dipegang bendahara.</p>
+                    </div>
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <button onclick="switchTab('pertemuans')" class="flex-1 md:flex-initial bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow">
+                            <i class="fa-solid fa-calendar-plus"></i> Catat Pertemuan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secondary Detail Cards Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Status Malam Jumat & Tuan Rumah -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-house-user text-emerald-600"></i> Status Pertemuan Terakhir & Tuan Rumah
+                        </h3>
+                        <div id="dashStatusPertemuanBox" class="space-y-3">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Neraca Posisi Keuangan -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-scale-balanced text-emerald-600"></i> Ringkasan Neraca Keuangan Handil
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-600">Total Kas Komunitas (Sokongan - Konsumsi):</span>
+                                <span id="neracaKasKomunitas" class="font-semibold text-emerald-700">Rp0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-600">Total Titipan Tabungan Anggota:</span>
+                                <span id="neracaTabungan" class="font-semibold text-blue-700">Rp0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-600">Piutang Sokongan (Tunggakan):</span>
+                                <span id="neracaTunggakan" class="font-semibold text-rose-600">Rp0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-600">Piutang Pinjaman Handil (Sisa Hutang):</span>
+                                <span id="neracaHutang" class="font-semibold text-amber-600">Rp0</span>
+                            </div>
+                            <div class="flex justify-between py-2 font-bold text-slate-800 bg-slate-50 px-3 rounded-lg mt-2">
+                                <span>Total Aset Bersih Komunitas:</span>
+                                <span id="neracaTotalAset" class="text-emerald-800">Rp0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daftar Anggota Menunggak Quick Overview -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-rose-600"></i> Daftar Anggota Memiliki Tunggakan Sokongan
+                        </h3>
+                        <span id="dashJumlahPenunggak" class="bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full text-xs font-bold">0 Anggota</span>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3 rounded-l-lg">ID</th>
+                                    <th class="p-3">Nama Anggota</th>
+                                    <th class="p-3">Peran</th>
+                                    <th class="p-3 text-right">Total Tunggakan</th>
+                                    <th class="p-3 text-center rounded-r-lg">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashTunggakanTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: CATAT PERTEMUAN -->
+            <section id="tab-pertemuans" class="tab-content hidden space-y-6">
+                <!-- Date Selector and Host Info Top Bar -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-calendar-days text-lg"></i>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500">Pilih Tanggal Pertemuan Malam Jumat</label>
+                                <input type="date" id="meetingDatePicker" onchange="loadMeetingForDate()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                        </div>
+
+                        <!-- Status Badge & Controls -->
+                        <div class="flex items-center gap-3">
+                            <span id="meetingStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                <i class="fa-solid fa-folder-open mr-1"></i> STATUS: OPEN (DRAFT)
+                            </span>
+                            <span id="meetingIdDisplay" class="text-xs font-mono font-bold bg-slate-100 px-2.5 py-1 rounded-md text-slate-600">ID: PERT-0001</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Tuan Rumah Malam Jumat Ini</label>
+                            <select id="meetingHostSelect" onchange="updateMeetingHost()" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Biaya Konsumsi Default (Rp)</label>
+                            <input type="number" id="meetingConsumptionCost" onchange="calculateMeetingTotals()" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500" value="300000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance and Contribution Recording Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-users-check text-emerald-600"></i> Presensi Kehadiran, Sokongan Wajib & Tabungan Sukarela
+                            </h3>
+                            <p class="text-[11px] text-slate-500">Default Sokongan Wajib Rp10.000. Pengurus (Ahmadi & Azan) BEBAS SOKONGAN.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="setAllAttendance(true)" id="btnHadirSemua" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors">
+                                <i class="fa-solid fa-check-double mr-1"></i> Hadir Semua
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Anggota</th>
+                                    <th class="p-3 text-center">Kehadiran</th>
+                                    <th class="p-3 text-right">Kewajiban Sokongan</th>
+                                    <th class="p-3 text-right">Bayar Sokongan (Rp)</th>
+                                    <th class="p-3 text-right">Tunggakan (Rp)</th>
+                                    <th class="p-3 text-right">Tabungan Sukarela (Rp)</th>
+                                    <th class="p-3 text-center">Status Bayar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="meetingAttendanceTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Friday Night Recap Banner -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-emerald-600"></i> Rekap Arus Uang Malam Jumat
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                            <span class="text-slate-500 font-medium">Total Sokongan Masuk:</span>
+                            <h4 id="rekapTotalSokongan" class="text-base font-bold text-emerald-700 mt-0.5">Rp0</h4>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                            <span class="text-slate-500 font-medium">Total Tabungan Masuk:</span>
+                            <h4 id="rekapTotalTabungan" class="text-base font-bold text-blue-700 mt-0.5">Rp0</h4>
+                        </div>
+                        <div class="bg-emerald-100/60 p-3 rounded-xl border border-emerald-200">
+                            <span class="text-slate-500 font-medium">Total Penerimaan Gross:</span>
+                            <h4 id="rekapTotalPenerimaan" class="text-base font-bold text-emerald-900 mt-0.5">Rp0</h4>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                            <span class="text-slate-500 font-medium">Biaya Konsumsi:</span>
+                            <h4 id="rekapBiayaKonsumsi" class="text-base font-bold text-rose-700 mt-0.5">Rp0</h4>
+                        </div>
+                        <div class="bg-slate-900 text-white p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-300 font-medium">TOTAL BERSIH KAS:</span>
+                            <h4 id="rekapTotalBersih" class="text-base font-bold text-amber-400 mt-0.5">Rp0</h4>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row justify-end items-center gap-3 pt-3 border-t border-slate-100">
+                        <button onclick="saveMeetingDraftAction()" id="btnSaveDraft" class="w-full sm:w-auto bg-slate-700 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow">
+                            <i class="fa-solid fa-floppy-disk"></i> SIMPAN PERTEMUAN (DRAFT)
+                        </button>
+                        <button onclick="closeMeetingAction()" id="btnCloseMeeting" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow">
+                            <i class="fa-solid fa-lock"></i> TUTUP BUKU PERTEMUAN INI
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ANGGOTA -->
+            <section id="tab-anggota" class="tab-content hidden space-y-6">
+                <!-- Top Toolbar Buttons -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="openAddMemberModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-user-plus"></i> TAMBAH ANGGOTA
+                        </button>
+                        <button onclick="openImportExcelModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-file-excel"></i> IMPORT EXCEL
+                        </button>
+                        <button onclick="exportMembersToExcel()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-file-export"></i> EXPORT
+                        </button>
+                        <button onclick="downloadExcelTemplate()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold px-3 py-2 rounded-xl text-xs transition-colors flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> TEMPLATE EXCEL
+                        </button>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="text" id="memberSearchInput" onkeyup="filterMemberTable()" placeholder="Cari nama / HP / alamat..." class="w-full border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Member Data Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">ID Anggota</th>
+                                    <th class="p-3">Nama Lengkap</th>
+                                    <th class="p-3">Panggilan</th>
+                                    <th class="p-3">No HP</th>
+                                    <th class="p-3">Peran</th>
+                                    <th class="p-3 text-center">Bebas Sokongan</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: TABUNGAN SUKARELA -->
+            <section id="tab-tabungan" class="tab-content hidden space-y-6">
+                <!-- Tabungan Overview Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">Total Dana Tabungan</span>
+                        <h3 id="tabunganTotalDana" class="text-2xl font-bold text-blue-700 mt-1">Rp0</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">Akumulasi seluruh tabungan anggota</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">Jumlah Penabung Aktif</span>
+                        <h3 id="tabunganTotalPenabung" class="text-2xl font-bold text-emerald-700 mt-1">0 Anggota</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">Anggota yang memiliki saldo tabungan > 0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <span class="text-xs font-semibold text-slate-500 uppercase">Rata-Rata Tabungan</span>
+                        <h3 id="tabunganRataRata" class="text-2xl font-bold text-slate-800 mt-1">Rp0</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">Saldo rata-rata per anggota</p>
+                    </div>
+                </div>
+
+                <!-- Daftar Saldo Tabungan Anggota -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-5">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i class="fa-solid fa-piggy-bank text-blue-600"></i> Rincian Saldo Tabungan Sukarela Per Anggota
+                    </h3>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Nama Anggota</th>
+                                    <th class="p-3">Peran</th>
+                                    <th class="p-3 text-right">Total Akumulasi Tabungan</th>
+                                    <th class="p-3 text-center">Status Tabungan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="savingsTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: HUTANG HANDIL -->
+            <section id="tab-hutang" class="tab-content hidden space-y-6">
+                <!-- Action Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                    <button onclick="openAddDebtModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> CATAT PINJAMAN HUTANG BARU
+                    </button>
+                    <span class="text-xs text-slate-500 font-medium">Manajemen Pinjaman Kas Handil</span>
+                </div>
+
+                <!-- Hutang Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">ID Hutang</th>
+                                    <th class="p-3">Nama Anggota</th>
+                                    <th class="p-3">Tanggal Pinjam</th>
+                                    <th class="p-3 text-right">Jumlah Awal (Rp)</th>
+                                    <th class="p-3 text-right">Total Dibayar (Rp)</th>
+                                    <th class="p-3 text-right">Sisa Hutang (Rp)</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debtTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: JADWAL TUAN RUMAH -->
+            <section id="tab-tuanrumah" class="tab-content hidden space-y-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-house-user text-emerald-600"></i> Jadwal Urutan Tuan Rumah Malam Jumat
+                            </h3>
+                            <p class="text-[11px] text-slate-500">Urutan giliran anggota penyelenggara pertemuan Yasinan malam Jumat</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-slate-600">Atur Tuan Rumah Berikutnya:</span>
+                            <select id="manualHostPicker" onchange="setManualNextHost(this.value)" class="border border-slate-300 rounded-lg p-1.5 text-xs font-semibold focus:ring-2 focus:ring-emerald-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">No Urut</th>
+                                    <th class="p-3">Nama Anggota</th>
+                                    <th class="p-3">Peran</th>
+                                    <th class="p-3">Alamat</th>
+                                    <th class="p-3 text-center">Status Giliran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hostScheduleTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: BUKU KAS & REKONSILIASI -->
+            <section id="tab-kas" class="tab-content hidden space-y-6">
+                <!-- Manual Transaction Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <button onclick="openAddCashModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-plus-circle"></i> CATAT TRANSAKSI KAS MANUAL
+                    </button>
+                    <div class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                        Saldo Kas Komunitas: <span id="cashBookSaldo">Rp0</span>
+                    </div>
+                </div>
+
+                <!-- Cash Book Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-200">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-book text-emerald-600"></i> Buku Arus Kas Komunitas
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-100 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">ID Kas</th>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">ID Pertemuan</th>
+                                    <th class="p-3">Keterangan</th>
+                                    <th class="p-3 text-right">Kas Masuk (Rp)</th>
+                                    <th class="p-3 text-right">Kas Keluar (Rp)</th>
+                                    <th class="p-3 text-right">Saldo (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cashTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reconciliation Panel -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-emerald-600"></i> Form Rekonsiliasi Fisik Kas
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Saldo Kas Menurut Sistem</label>
+                            <input type="text" id="recoSaldoSistem" readonly class="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 font-bold text-slate-800" value="Rp0">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Saldo Fisik Di Uang Cash (Rp)</label>
+                            <input type="number" id="recoSaldoFisik" oninput="calculateReconciliation()" placeholder="Masukkan uang tunai riil..." class="w-full border border-slate-300 rounded-xl p-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Selisih Fisik vs Sistem</label>
+                            <input type="text" id="recoSelisih" readonly class="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 font-bold" value="Rp0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan / Keterangan Rekonsiliasi</label>
+                        <input type="text" id="recoCatatan" placeholder="Penjelasan jika ada selisih uang..." class="w-full border border-slate-300 rounded-xl p-2 text-xs">
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="saveReconciliationAction()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-floppy-disk"></i> SIMPAN REKONSILIASI
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 8: PEMBAGIAN SAFAR -->
+            <section id="tab-safar" class="tab-content hidden space-y-6">
+                <!-- Info Banner -->
+                <div class="bg-gradient-to-r from-blue-900 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-blue-800 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-300 text-lg"></i>
+                        <h3 class="font-bold text-base">Aturan Pembagian Tabungan Akhir Bulan Safar</h3>
+                    </div>
+                    <p class="text-xs text-blue-100 leading-relaxed">
+                        Rumus Pemotongan Otomatis: <br>
+                        <strong class="text-amber-300">TABUNGAN BRUTO - TUNGGAKAN SOKONGAN - SISA HUTANG HANDIL = TABUNGAN BERSIH DITERIMA.</strong><br>
+                        Setiap pemotongan hutang dari tabungan Safar akan otomatis tercatat di sheet <code class="bg-blue-950 px-1.5 py-0.5 rounded text-amber-200">PEMBAYARAN_HUTANG</code> dengan metode <code class="bg-blue-950 px-1.5 py-0.5 rounded text-amber-200">POTONG_TABUNGAN_SAFAR</code>.
+                    </p>
+                </div>
+
+                <!-- Action Button -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced text-blue-600"></i> Simulasi & Eksekusi Pembagian Tabungan Safar
+                    </h3>
+                    <button onclick="executeSafarDistribution()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                        <i class="fa-solid fa-calculator"></i> PROSES & EKSEKUSI PEMBAGIAN SAFAR
+                    </button>
+                </div>
+
+                <!-- Distribution Table -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Anggota</th>
+                                    <th class="p-3 text-right">Tabungan Bruto (Rp)</th>
+                                    <th class="p-3 text-right">Potongan Tunggakan (Rp)</th>
+                                    <th class="p-3 text-right">Potongan Hutang (Rp)</th>
+                                    <th class="p-3 text-right">Tabungan Bersih Diterima (Rp)</th>
+                                    <th class="p-3 text-center">Status Safar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="safarTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 9: LAPORAN & AUDIT LOG -->
+            <section id="tab-laporan" class="tab-content hidden space-y-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-600"></i> Log Aktivitas & Audit Trailling System
+                        </h3>
+                        <button onclick="exportAuditLogToExcel()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-excel"></i> Export Audit Log
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3">Aktivitas</th>
+                                    <th class="p-3">ID Anggota</th>
+                                    <th class="p-3">ID Pertemuan</th>
+                                    <th class="p-3">ID Transaksi</th>
+                                    <th class="p-3">Keterangan Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 10: PENGATURAN & BACKEND -->
+            <section id="tab-pengaturan" class="tab-content hidden space-y-6">
+                <!-- System App Mode Configuration -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-600"></i> Mode Aplikasi & Database Google Sheets
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 border rounded-xl bg-slate-50 space-y-3">
+                            <label class="block text-xs font-bold text-slate-700">PILIH MODE OPERASIONAL:</label>
+                            <div class="flex items-center gap-4 text-xs font-semibold">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="appModeRadio" value="DEMO" onchange="changeAppMode('DEMO')" checked class="text-emerald-600 focus:ring-emerald-500">
+                                    <span class="text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded border border-amber-300">MODE DEMO</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="appModeRadio" value="PROD" onchange="changeAppMode('PROD')" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span class="text-emerald-800 font-bold bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">MODE PRODUKSI</span>
+                                </label>
+                            </div>
+                            <p class="text-[11px] text-slate-500">
+                                <strong>Mode Demo:</strong> Menggunakan database memori lokal untuk simulasi tanpa Google Sheets.<br>
+                                <strong>Mode Produksi:</strong> Menghubungkan aplikasi langsung ke Google Apps Script backend.
+                            </p>
+                        </div>
+
+                        <div class="p-4 border rounded-xl bg-slate-50 space-y-3">
+                            <label class="block text-xs font-bold text-slate-700">URL GOOGLE APPS SCRIPT WEB APP:</label>
+                            <input type="text" id="webAppUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-mono">
+                            <div class="flex gap-2">
+                                <button onclick="saveWebAppUrl()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-1.5 rounded-lg text-xs">
+                                    <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan URL
+                                </button>
+                                <button onclick="testBackendConnection()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs">
+                                    <i class="fa-solid fa-plug mr-1"></i> TEST KONEKSI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Apps Script Code View Block -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-code text-emerald-600"></i> Backend Code Google Apps Script (Code.gs)
+                            </h3>
+                            <p class="text-[11px] text-slate-500">Copy kode di bawah ini lalu tempel ke Editor Google Apps Script spreadsheet Anda</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="copyGasCode()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i> COPY CODE
+                            </button>
+                            <button onclick="downloadGasCode()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-download"></i> DOWNLOAD CODE.GS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Code Snippet Display Window -->
+                    <div class="relative">
+                        <textarea id="gasCodeDisplay" readonly class="w-full h-80 bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-800 focus:outline-none custom-scrollbar leading-relaxed" spellcheck="false"></textarea>
+                    </div>
+                </div>
+
+                <!-- Reset Data Danger Zone Block -->
+                <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-rose-200 pb-3">
+                        <div class="flex items-center gap-2 text-rose-800 font-bold text-sm">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Reset Seluruh Data Aplikasi
+                        </div>
+                    </div>
+                    <p class="text-xs text-rose-700 leading-relaxed">
+                        Tombol ini akan menghapus dan mereset seluruh data (Anggota, Pertemuan, Kehadiran, Sokongan, Tabungan, Hutang, Kas, Jadwal, dan Log Aktivitas). Gunakan fitur ini jika Anda ingin mengosongkan aplikasi untuk memulai pencatatan baru.
+                    </p>
+                    <div class="flex justify-start pt-1">
+                        <button onclick="resetAllDataAction()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-trash-can"></i> RESET SEMUA DATA
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL WINDOWS -->
+    <!-- MODAL 1: TAMBAH ANGGOTA MANUAL -->
+    <div id="addMemberModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Tambah Anggota Handil Manual</h3>
+                <button onclick="closeAddMemberModal()" class="text-emerald-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleAddMemberSubmit(event)" class="p-5 space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="block font-semibold text-slate-700 mb-1">Nama Lengkap *</label>
+                        <input type="text" id="mAddNama" required placeholder="Contoh: Haji Subhan" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Nama Panggilan</label>
+                        <input type="text" id="mAddPanggilan" placeholder="Subhan" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">No HP / WhatsApp</label>
+                        <input type="text" id="mAddNoHP" placeholder="081234567890" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block font-semibold text-slate-700 mb-1">Alamat Rumah</label>
+                        <input type="text" id="mAddAlamat" placeholder="RT 02 Kampung Handil" class="w-full border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Peran Anggota</label>
+                        <select id="mAddPeran" class="w-full border border-slate-300 rounded-xl p-2.5 font-medium">
+                            <option value="ANGGOTA" selected>ANGGOTA</option>
+                            <option value="BENDAHARA">BENDAHARA</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Bebas Sokongan Wajib</label>
+                        <select id="mAddBebas" class="w-full border border-slate-300 rounded-xl p-2.5 font-medium">
+                            <option value="TIDAK" selected>TIDAK</option>
+                            <option value="YA">YA (Kewajiban Rp0)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAddMemberModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">Simpan Anggota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: IMPORT EXCEL PREVIEW -->
+    <div id="importExcelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden">
+            <div class="bg-blue-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> Import Anggota Via File Excel / CSV</h3>
+                <button onclick="closeImportExcelModal()" class="text-blue-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Pilih File (.xlsx, .xls, .csv)</label>
+                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="handleExcelPreview(event)" class="w-full border border-slate-300 rounded-xl p-2">
+                </div>
+
+                <!-- Preview Statistics Box -->
+                <div id="importPreviewBox" class="hidden space-y-3">
+                    <div class="grid grid-cols-4 gap-2 text-center">
+                        <div class="bg-slate-100 p-2 rounded-xl">
+                            <span class="text-slate-500 text-[10px]">Total Data</span>
+                            <h4 id="statTotalImport" class="font-bold text-sm text-slate-800">0</h4>
+                        </div>
+                        <div class="bg-emerald-100 p-2 rounded-xl">
+                            <span class="text-emerald-700 text-[10px]">Valid Baru</span>
+                            <h4 id="statValidImport" class="font-bold text-sm text-emerald-800">0</h4>
+                        </div>
+                        <div class="bg-amber-100 p-2 rounded-xl">
+                            <span class="text-amber-700 text-[10px]">Duplikat</span>
+                            <h4 id="statDuplicateImport" class="font-bold text-sm text-amber-800">0</h4>
+                        </div>
+                        <div class="bg-rose-100 p-2 rounded-xl">
+                            <span class="text-rose-700 text-[10px]">Error/Inkomplit</span>
+                            <h4 id="statErrorImport" class="font-bold text-sm text-rose-800">0</h4>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">Opsi Penanganan Anggota Duplikat:</label>
+                        <select id="duplicateHandlingSelect" class="w-full border border-slate-300 rounded-xl p-2 font-medium">
+                            <option value="SKIP" selected>Lewati Data Duplikat (Default)</option>
+                            <option value="UPDATE">Update Data Lama Dengan Yang Baru</option>
+                            <option value="NEW">Tetap Import Sebagai Anggota Baru</option>
+                        </select>
+                    </div>
+
+                    <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl custom-scrollbar">
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="bg-slate-50 font-semibold text-slate-600">
+                                <tr>
+                                    <th class="p-2">Nama</th>
+                                    <th class="p-2">HP</th>
+                                    <th class="p-2">Peran</th>
+                                    <th class="p-2">Status Duplikat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="excelPreviewTableBody" class="divide-y divide-slate-100">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeImportExcelModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="button" id="btnCommitImport" onclick="commitImportExcel()" disabled class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold">Proses Import Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CATAT HUTANG BARU -->
+    <div id="addDebtModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="bg-amber-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar"></i> Catat Pinjaman Hutang Handil Baru</h3>
+                <button onclick="closeAddDebtModal()" class="text-amber-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleAddDebtSubmit(event)" class="p-5 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Pilih Anggota Peminjam *</label>
+                    <select id="mDebtMemberSelect" required class="w-full border border-slate-300 rounded-xl p-2.5 font-medium">
+                        <!-- Populated -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tanggal Pinjaman *</label>
+                    <input type="date" id="mDebtTanggal" required class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Jumlah Awal Pinjaman (Rp) *</label>
+                    <input type="number" id="mDebtJumlah" min="1000" required placeholder="Contoh: 500000" class="w-full border border-slate-300 rounded-xl p-2.5 font-bold">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Keterangan / Keperluan</label>
+                    <input type="text" id="mDebtKeterangan" placeholder="Contoh: Pinjam modal usaha / keperluan keluarga" class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAddDebtModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold">Simpan Pinjaman</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: BAYAR / CICIL HUTANG -->
+    <div id="payDebtModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> Pembayaran / Cicilan Hutang Handil</h3>
+                <button onclick="closePayDebtModal()" class="text-emerald-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handlePayDebtSubmit(event)" class="p-5 space-y-4 text-xs">
+                <input type="hidden" id="mPayDebtId">
+                <div class="bg-slate-50 p-3 rounded-xl space-y-1 border border-slate-200">
+                    <div class="flex justify-between text-slate-600"><span>Peminjam:</span> <strong id="mPayMemberName" class="text-slate-800">--</strong></div>
+                    <div class="flex justify-between text-slate-600"><span>Hutang Awal:</span> <strong id="mPayJumlahAwal">Rp0</strong></div>
+                    <div class="flex justify-between text-slate-600"><span>Sisa Hutang Saat Ini:</span> <strong id="mPaySisaHutang" class="text-amber-700">Rp0</strong></div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tanggal Pembayaran *</label>
+                    <input type="date" id="mPayTanggal" required class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Jumlah Cicilan / Bayar (Rp) *</label>
+                    <input type="number" id="mPayJumlah" min="1000" required placeholder="Masukkan nominal..." class="w-full border border-slate-300 rounded-xl p-2.5 font-bold">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Metode Pembayaran</label>
+                    <select id="mPayMetode" class="w-full border border-slate-300 rounded-xl p-2.5 font-medium">
+                        <option value="TUNAI" selected>TUNAI</option>
+                        <option value="TRANSFER">TRANSFER BANK</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Keterangan Catatan</label>
+                    <input type="text" id="mPayKeterangan" placeholder="Cicilan ke-1 dll" class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closePayDebtModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">Simpan Pembayaran</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: RIWAYAT CICILAN HUTANG -->
+    <div id="historyDebtModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+            <div class="bg-slate-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Cicilan & Pembayaran Hutang</h3>
+                <button onclick="closeHistoryDebtModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <div id="historyMemberDetails" class="bg-slate-50 p-3 rounded-xl space-y-1"></div>
+                <div class="max-h-60 overflow-y-auto border border-slate-200 rounded-xl custom-scrollbar">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-semibold">
+                            <tr>
+                                <th class="p-2.5">Tanggal</th>
+                                <th class="p-2.5 text-right">Nominal Bayar</th>
+                                <th class="p-2.5">Metode</th>
+                                <th class="p-2.5">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyDebtTableBody" class="divide-y divide-slate-100">
+                            <!-- Dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button type="button" onclick="closeHistoryDebtModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: CATAT KAS MANUAL -->
+    <div id="addCashModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="bg-emerald-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-plus-circle"></i> Catat Transaksi Arus Kas Manual</h3>
+                <button onclick="closeAddCashModal()" class="text-emerald-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleAddCashSubmit(event)" class="p-5 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tanggal Transaksi *</label>
+                    <input type="date" id="mCashTanggal" required class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Jenis Transaksi Kas</label>
+                    <select id="mCashJenis" class="w-full border border-slate-300 rounded-xl p-2.5 font-medium">
+                        <option value="MASUK">MASUK (Penerimaan Kas)</option>
+                        <option value="KELUAR">KELUAR (Pengeluaran Kas)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nominal (Rp) *</label>
+                    <input type="number" id="mCashNominal" min="1000" required placeholder="100000" class="w-full border border-slate-300 rounded-xl p-2.5 font-bold">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Keterangan Detail *</label>
+                    <input type="text" id="mCashKeterangan" required placeholder="Contoh: Sumbangan hamba Allah / Pembelian perlengkapan" class="w-full border border-slate-300 rounded-xl p-2.5">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAddCashModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">Simpan Transaksi Kas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 7: KONFIRMASI RESET DATA -->
+    <div id="resetConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            <div class="bg-rose-800 text-white p-4 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-300"></i> Konfirmasi Reset Data
+                </h3>
+                <button onclick="closeResetConfirmModal()" class="text-rose-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl text-rose-800 font-medium leading-relaxed">
+                    🚨 <strong>PERINGATAN DATA:</strong><br>
+                    Tindakan ini akan menghapus dan mereset <strong>SEMUA DATA</strong> (Anggota, Pertemuan, Sokongan, Tabungan, Hutang, Kas, dan Log Aktivitas).
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Ketik kata <strong class="text-rose-600">RESET</strong> di bawah ini untuk konfirmasi:</label>
+                    <input type="text" id="resetInputConfirm" placeholder="Ketik RESET" class="w-full border border-slate-300 rounded-xl p-2.5 font-bold uppercase text-rose-700 focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeResetConfirmModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                    <button type="button" onclick="executeResetAllData()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">Kirim & Reset Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION JAVASCRIPT & BACKEND BRIDGE -->
+    <script>
+        // GLOBAL APP CONFIGURATION & STATE
+        const APP_CONFIG = {
+            mode: "DEMO", // DEMO | PROD
+            defaultWeeklyContribution: 10000,
+            defaultConsumptionCost: 300000,
+            webAppUrl: ""
+        };
+
+        let dbState = {
+            SETTINGS: [],
+            ANGGOTA: [],
+            PERTEMUAN: [],
+            KEHADIRAN: [],
+            SOKONGAN_WAJIB: [],
+            TABUNGAN: [],
+            HUTANG_HANDIL: [],
+            PEMBAYARAN_HUTANG: [],
+            KAS: [],
+            JADWAL_TUAN_RUMAH: [],
+            PEMBAGIAN_SAFAR: [],
+            REKONSILIASI: [],
+            LOG_AKTIVITAS: []
+        };
+
+        let currentMeetingState = {
+            ID_Pertemuan: "",
+            Tanggal: "",
+            Status: "OPEN",
+            ID_Tuan_Rumah: "",
+            Biaya_Konsumsi: 300000,
+            attendanceMap: {}
+        };
+
+        let tempExcelImportData = [];
+
+        // UI UTILITIES & TOASTS
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            let bg = 'bg-slate-800 text-white';
+            let icon = 'fa-info-circle';
+
+            if (type === 'success') { bg = 'bg-emerald-700 text-white'; icon = 'fa-check-circle'; }
+            if (type === 'error') { bg = 'bg-rose-700 text-white'; icon = 'fa-exclamation-circle'; }
+            if (type === 'warning') { bg = 'bg-amber-600 text-white'; icon = 'fa-triangle-exclamation'; }
+
+            toast.className = `${bg} p-3.5 rounded-xl shadow-xl flex items-center gap-3 text-xs pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span class="font-medium leading-snug flex-1">${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function formatRupiah(number) {
+            const num = Number(number) || 0;
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-emerald-800');
+                el.classList.add('hover:bg-emerald-800');
+            });
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-emerald-800');
+                activeNav.classList.remove('hover:bg-emerald-800');
+            }
+
+            const titleMap = {
+                dashboard: ['Dashboard Utama', 'Ringkasan kas, sokongan, tabungan, dan statistik pertemuan Handil Yasinan', 'fa-chart-line'],
+                pertemuans: ['Catat Pertemuan Malam Jumat', 'Pencatatan kehadiran, sokongan wajib Rp10rb, dan tabungan sukarela', 'fa-calendar-check'],
+                anggota: ['Data Anggota Handil', 'Manajemen daftar anggota, bebas sokongan (pengurus), dan import Excel', 'fa-users'],
+                tabungan: ['Tabungan Sukarela Anggota', 'Rincian akumulasi saldo tabungan sukarela seluruh anggota', 'fa-piggy-bank'],
+                hutang: ['Hutang Kas Handil', 'Pencatatan pinjaman anggota, pembayaran cicilan, dan sisa saldo hutang', 'fa-hand-holding-dollar'],
+                tuanrumah: ['Jadwal Tuan Rumah', 'Urutan giliran anggota penyelenggara Yasinan Malam Jumat', 'fa-house-user'],
+                kas: ['Buku Kas & Rekonsiliasi', 'Pencatatan arus kas masuk/keluar dan pencocokan uang fisik', 'fa-wallet'],
+                safar: ['Pembagian Tabungan Safar', 'Simulasi pemotongan tunggakan sokongan & hutang dari tabungan akhir Safar', 'fa-scale-balanced'],
+                laporan: ['Laporan & Audit Log', 'Riwayat aktivitas sistem dan audit trailing transaksi', 'fa-file-invoice-dollar'],
+                pengaturan: ['Pengaturan & Backend', 'Konfigurasi mode aplikasi, koneksi Apps Script, dan kode Code.gs', 'fa-gears']
+            };
+
+            if (titleMap[tabId]) {
+                document.getElementById('pageTitle').innerHTML = `<i class="fa-solid ${titleMap[tabId][2]} text-emerald-600"></i> ${titleMap[tabId][0]}`;
+                document.getElementById('pageSubtitle').innerText = titleMap[tabId][1];
+            }
+
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+            }
+
+            refreshDataViews();
+        }
+
+        function changeAppMode(mode) {
+            APP_CONFIG.mode = mode;
+            const badge = document.getElementById('appModeBadge');
+
+            if (mode === 'PROD') {
+                badge.className = "px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                badge.innerHTML = `<i class="fa-solid fa-cloud mr-1"></i> PRODUKSI`;
+                clearProductionData();
+                if (APP_CONFIG.webAppUrl) {
+                    fetchProductionData();
+                } else {
+                    showToast("Masukkan URL Web App Google Apps Script di Pengaturan untuk memuat data produksi.", "warning");
+                }
+            } else {
+                badge.className = "px-2.5 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                badge.innerHTML = `<i class="fa-solid fa-flask mr-1"></i> DEMO`;
+                initDemoData();
+            }
+
+            refreshDataViews();
+        }
+
+        // BUSINESS LOGIC & DATA CALCULATIONS
+        function getMemberTotalSavings(idAnggota) {
+            let total = 0;
+            dbState.TABUNGAN.forEach(t => {
+                if (t.ID_Anggota === idAnggota) {
+                    total += Number(t.Nominal || 0);
+                }
+            });
+            return total;
+        }
+
+        function getMemberTotalDebt(idAnggota) {
+            let total = 0;
+            dbState.HUTANG_HANDIL.forEach(h => {
+                if (h.ID_Anggota === idAnggota) {
+                    total += getDebtRemainingBalance(h.ID_Hutang);
+                }
+            });
+            return total;
+        }
+
+        function getDebtRemainingBalance(idHutang) {
+            const h = dbState.HUTANG_HANDIL.find(x => x.ID_Hutang === idHutang);
+            if (!h) return 0;
+
+            let dibayar = 0;
+            dbState.PEMBAYARAN_HUTANG.forEach(p => {
+                if (p.ID_Hutang === idHutang) {
+                    dibayar += Number(p.Jumlah_Pembayaran || 0);
+                }
+            });
+
+            return Math.max(0, Number(h.Jumlah_Awal || 0) - dibayar);
+        }
+
+        function getMemberCumulativeArrears(idAnggota) {
+            let totalTunggakan = 0;
+            dbState.SOKONGAN_WAJIB.forEach(s => {
+                if (s.ID_Anggota === idAnggota) {
+                    totalTunggakan += Number(s.Tunggakan || 0);
+                }
+            });
+            return totalTunggakan;
+        }
+
+        // MEETING PRESENSI RECORDING & RECAP
+        function updateMeetingHost() {
+            const hostId = document.getElementById('meetingHostSelect').value;
+            currentMeetingState.ID_Tuan_Rumah = hostId;
+        }
+
+        function calculateMeetingTotals() {
+            const cost = Number(document.getElementById('meetingConsumptionCost').value) || 0;
+            currentMeetingState.Biaya_Konsumsi = cost;
+
+            let totalSokongan = 0;
+            let totalTabungan = 0;
+
+            Object.values(currentMeetingState.attendanceMap).forEach(row => {
+                totalSokongan += Number(row.BayarSokongan || 0);
+                totalTabungan += Number(row.Tabungan || 0);
+            });
+
+            const gross = totalSokongan + totalTabungan;
+            const bersih = gross - cost;
+
+            document.getElementById('rekapTotalSokongan').innerText = formatRupiah(totalSokongan);
+            document.getElementById('rekapTotalTabungan').innerText = formatRupiah(totalTabungan);
+            document.getElementById('rekapTotalPenerimaan').innerText = formatRupiah(gross);
+            document.getElementById('rekapBiayaKonsumsi').innerText = formatRupiah(cost);
+            document.getElementById('rekapTotalBersih').innerText = formatRupiah(bersih);
+        }
+
+        function setAllAttendance(isHadir) {
+            dbState.ANGGOTA.forEach(m => {
+                if (currentMeetingState.attendanceMap[m.ID_Anggota]) {
+                    const isExempt = m.Bebas_Sokongan === "YA";
+                    currentMeetingState.attendanceMap[m.ID_Anggota].Hadir = isHadir;
+                    if (!currentMeetingState.attendanceMap[m.ID_Anggota].ManualEdited) {
+                        currentMeetingState.attendanceMap[m.ID_Anggota].BayarSokongan = isExempt ? 0 : (isHadir ? APP_CONFIG.defaultWeeklyContribution : 0);
+                    }
+                }
+            });
+            renderMeetingAttendanceTable();
+        }
+
+        function toggleAttendance(idAnggota) {
+            const row = currentMeetingState.attendanceMap[idAnggota];
+            if (!row) return;
+
+            const member = dbState.ANGGOTA.find(m => m.ID_Anggota === idAnggota);
+            const isExempt = member && member.Bebas_Sokongan === "YA";
+
+            row.Hadir = !row.Hadir;
+            if (!row.ManualEdited) {
+                row.BayarSokongan = isExempt ? 0 : (row.Hadir ? APP_CONFIG.defaultWeeklyContribution : 0);
+            }
+            renderMeetingAttendanceTable();
+        }
+
+        function updateContributionPay(idAnggota, value) {
+            const row = currentMeetingState.attendanceMap[idAnggota];
+            if (!row) return;
+
+            row.BayarSokongan = Number(value) || 0;
+            row.ManualEdited = true;
+            renderMeetingAttendanceTable();
+        }
+
+        function updateSavings(idAnggota, value) {
+            const row = currentMeetingState.attendanceMap[idAnggota];
+            if (!row) return;
+
+            row.Tabungan = Number(value) || 0;
+            calculateMeetingTotals();
+        }
+
+        function renderMeetingAttendanceTable() {
+            const tbody = document.getElementById('meetingAttendanceTableBody');
+            tbody.innerHTML = '';
+
+            const isClosed = currentMeetingState.Status === "CLOSED";
+
+            dbState.ANGGOTA.forEach(m => {
+                const att = currentMeetingState.attendanceMap[m.ID_Anggota] || { Hadir: true, BayarSokongan: 10000, Tabungan: 0, ManualEdited: false };
+                const isExempt = m.Bebas_Sokongan === "YA";
+                const kewajiban = isExempt ? 0 : APP_CONFIG.defaultWeeklyContribution;
+                const tunggakan = Math.max(0, kewajiban - att.BayarSokongan);
+
+                let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">LUNAS</span>`;
+                if (!isExempt) {
+                    if (att.BayarSokongan === 0) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">BELUM BAYAR</span>`;
+                    } else if (tunggakan > 0) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">SEBAGIAN</span>`;
+                    }
+                } else {
+                    statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">BEBAS</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-800">
+                        ${m.Nama}
+                        <div class="text-[10px] text-slate-400">${m.ID_Anggota} | ${m.Peran_Anggota}</div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="toggleAttendance('${m.ID_Anggota}')" ${isClosed ? 'disabled' : ''} class="px-3 py-1 rounded-lg text-xs font-bold transition-colors ${att.Hadir ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'}">
+                            ${att.Hadir ? '<i class="fa-solid fa-check mr-1"></i> HADIR' : '<i class="fa-solid fa-xmark mr-1"></i> ABSEN'}
+                        </button>
+                    </td>
+                    <td class="p-3 text-right font-medium text-slate-600">${formatRupiah(kewajiban)}</td>
+                    <td class="p-3 text-right">
+                        <input type="number" value="${att.BayarSokongan}" onchange="updateContributionPay('${m.ID_Anggota}', this.value)" ${isClosed || isExempt ? 'disabled' : ''} class="w-28 text-right border border-slate-300 rounded-lg p-1 font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100">
+                    </td>
+                    <td class="p-3 text-right font-bold ${tunggakan > 0 ? 'text-rose-600' : 'text-slate-400'}">${formatRupiah(tunggakan)}</td>
+                    <td class="p-3 text-right">
+                        <input type="number" value="${att.Tabungan}" onchange="updateSavings('${m.ID_Anggota}', this.value)" ${isClosed ? 'disabled' : ''} class="w-28 text-right border border-slate-300 rounded-lg p-1 font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100">
+                    </td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calculateMeetingTotals();
+        }
+
+        async function saveMeetingDraftAction() {
+            if (currentMeetingState.Status === "CLOSED") {
+                showToast("Pertemuan ini sudah CLOSED dan tidak dapat diedit.", "error");
+                return;
+            }
+
+            const meetingObj = {
+                ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                Tanggal: currentMeetingState.Tanggal,
+                Status: "OPEN",
+                ID_Tuan_Rumah: currentMeetingState.ID_Tuan_Rumah,
+                Biaya_Konsumsi: currentMeetingState.Biaya_Konsumsi,
+                Total_Sokongan: 0,
+                Total_Tabungan: 0,
+                Total_Bersih: 0,
+                Timestamp_Dibuat: new Date().toISOString(),
+                Timestamp_Diperbarui: new Date().toISOString()
+            };
+
+            const listKehadiran = [];
+            const listSokongan = [];
+            const listTabungan = [];
+
+            let sumSokongan = 0;
+            let sumTabungan = 0;
+
+            dbState.ANGGOTA.forEach(m => {
+                const att = currentMeetingState.attendanceMap[m.ID_Anggota];
+                if (!att) return;
+
+                const isExempt = m.Bebas_Sokongan === "YA";
+                const kewajiban = isExempt ? 0 : APP_CONFIG.defaultWeeklyContribution;
+                const tunggakan = Math.max(0, kewajiban - att.BayarSokongan);
+
+                listKehadiran.push({
+                    ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                    ID_Anggota: m.ID_Anggota,
+                    Status_Hadir: att.Hadir ? "HADIR" : "TIDAK_HADIR",
+                    Timestamp: new Date().toISOString()
+                });
+
+                listSokongan.push({
+                    ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                    ID_Anggota: m.ID_Anggota,
+                    Kewajiban: kewajiban,
+                    Dibayar: att.BayarSokongan,
+                    Tunggakan: tunggakan,
+                    Status_Bayar: isExempt ? "BEBAS" : (tunggakan === 0 ? "LUNAS" : (att.BayarSokongan > 0 ? "SEBAGIAN" : "BELUM_BAYAR")),
+                    Timestamp: new Date().toISOString()
+                });
+
+                if (att.Tabungan > 0) {
+                    listTabungan.push({
+                        ID_Transaksi: `TAB-${Date.now()}-${m.ID_Anggota}`,
+                        ID_Anggota: m.ID_Anggota,
+                        ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                        Tanggal: currentMeetingState.Tanggal,
+                        Nominal: att.Tabungan,
+                        Metode: "TUNAI",
+                        Keterangan: "Tabungan Malam Jumat",
+                        Timestamp: new Date().toISOString()
+                    });
+                }
+
+                sumSokongan += att.BayarSokongan;
+                sumTabungan += att.Tabungan;
+            });
+
+            meetingObj.Total_Sokongan = sumSokongan;
+            meetingObj.Total_Tabungan = sumTabungan;
+            meetingObj.Total_Bersih = (sumSokongan + sumTabungan) - currentMeetingState.Biaya_Konsumsi;
+
+            // Upsert in local memory
+            const existIdx = dbState.PERTEMUAN.findIndex(p => p.ID_Pertemuan === meetingObj.ID_Pertemuan);
+            if (existIdx >= 0) {
+                dbState.PERTEMUAN[existIdx] = meetingObj;
+            } else {
+                dbState.PERTEMUAN.push(meetingObj);
+            }
+
+            dbState.KEHADIRAN = dbState.KEHADIRAN.filter(k => k.ID_Pertemuan !== meetingObj.ID_Pertemuan).concat(listKehadiran);
+            dbState.SOKONGAN_WAJIB = dbState.SOKONGAN_WAJIB.filter(s => s.ID_Pertemuan !== meetingObj.ID_Pertemuan).concat(listSokongan);
+            dbState.TABUNGAN = dbState.TABUNGAN.filter(t => t.ID_Pertemuan !== meetingObj.ID_Pertemuan).concat(listTabungan);
+
+            // Audit Log
+            dbState.LOG_AKTIVITAS.push({
+                ID_Log: `LOG-${Date.now()}`,
+                Timestamp: new Date().toISOString(),
+                Aktivitas: "MEETING_DRAFT_SAVED",
+                ID_Anggota: "-",
+                ID_Pertemuan: meetingObj.ID_Pertemuan,
+                ID_Transaksi: "-",
+                Keterangan: `Simpan draft pertemuan tanggal ${meetingObj.Tanggal}`
+            });
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('saveMeetingDraft', {
+                        meeting: meetingObj,
+                        kehadiran: listKehadiran,
+                        sokongan: listSokongan,
+                        tabungan: listTabungan
+                    });
+                    showToast("Draft pertemuan berhasil disimpan ke Google Sheets!", "success");
+                } catch (err) {
+                    showToast("Draft tersimpan lokal, namun gagal sync Google Sheets: " + err.message, "warning");
+                }
+            } else {
+                showToast("Draft pertemuan berhasil disimpan (Mode Demo)!", "success");
+            }
+
+            refreshDataViews();
+        }
+
+        async function closeMeetingAction() {
+            if (currentMeetingState.Status === "CLOSED") {
+                showToast("Pertemuan ini sudah berstatus CLOSED.", "error");
+                return;
+            }
+
+            await saveMeetingDraftAction();
+
+            currentMeetingState.Status = "CLOSED";
+            const meeting = dbState.PERTEMUAN.find(p => p.ID_Pertemuan === currentMeetingState.ID_Pertemuan);
+            if (meeting) {
+                meeting.Status = "CLOSED";
+                meeting.Timestamp_Ditutup = new Date().toISOString();
+            }
+
+            // Record to Cash Book automatically
+            const grossSokongan = meeting ? Number(meeting.Total_Sokongan) : 0;
+            const biayaKonsumsi = meeting ? Number(meeting.Biaya_Konsumsi) : 0;
+
+            const listKas = [];
+            if (grossSokongan > 0) {
+                listKas.push({
+                    ID_Kas: `KAS-${Date.now()}-1`,
+                    ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                    Tanggal: currentMeetingState.Tanggal,
+                    Jenis: "MASUK",
+                    Keterangan: `Penerimaan Sokongan Malam Jumat (${currentMeetingState.ID_Pertemuan})`,
+                    Nominal: grossSokongan,
+                    Saldo: 0,
+                    Timestamp: new Date().toISOString()
+                });
+            }
+
+            if (biayaKonsumsi > 0) {
+                listKas.push({
+                    ID_Kas: `KAS-${Date.now()}-2`,
+                    ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                    Tanggal: currentMeetingState.Tanggal,
+                    Jenis: "KELUAR",
+                    Keterangan: `Biaya Konsumsi Malam Jumat (${currentMeetingState.ID_Pertemuan})`,
+                    Nominal: biayaKonsumsi,
+                    Saldo: 0,
+                    Timestamp: new Date().toISOString()
+                });
+            }
+
+            dbState.KAS = dbState.KAS.filter(k => k.ID_Pertemuan !== currentMeetingState.ID_Pertemuan).concat(listKas);
+
+            // Audit Log
+            dbState.LOG_AKTIVITAS.push({
+                ID_Log: `LOG-${Date.now()}`,
+                Timestamp: new Date().toISOString(),
+                Aktivitas: "MEETING_CLOSED",
+                ID_Anggota: "-",
+                ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                ID_Transaksi: "-",
+                Keterangan: `Tutup buku finalisasi pertemuan ${currentMeetingState.ID_Pertemuan}`
+            });
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('closeMeeting', {
+                        ID_Pertemuan: currentMeetingState.ID_Pertemuan,
+                        kasEntries: listKas
+                    });
+                    showToast("Buku pertemuan berhasil ditutup & disinkronkan ke Google Sheets!", "success");
+                } catch (err) {
+                    showToast("Buku ditutup lokal, gagal sync backend: " + err.message, "warning");
+                }
+            } else {
+                showToast("Buku pertemuan berhasil DITUTUP (CLOSED)!", "success");
+            }
+
+            loadMeetingForDate();
+            refreshDataViews();
+        }
+
+        // MEMBER MODAL CONTROLLERS
+        function openAddMemberModal() {
+            document.getElementById('addMemberModal').classList.remove('hidden');
+        }
+
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').classList.add('hidden');
+        }
+
+        async function handleAddMemberSubmit(e) {
+            e.preventDefault();
+            const nama = document.getElementById('mAddNama').value.trim();
+            const panggilan = document.getElementById('mAddPanggilan').value.trim();
+            const noHP = document.getElementById('mAddNoHP').value.trim();
+            const alamat = document.getElementById('mAddAlamat').value.trim();
+            const peran = document.getElementById('mAddPeran').value;
+            const bebas = document.getElementById('mAddBebas').value;
+
+            const newId = `ANG-${String(dbState.ANGGOTA.length + 1).padStart(4, '0')}`;
+
+            const memberObj = {
+                ID_Anggota: newId,
+                Nama: nama,
+                Nama_Panggilan: panggilan,
+                No_HP: noHP,
+                Alamat: alamat,
+                Tanggal_Bergabung: new Date().toISOString().split('T')[0],
+                Peran_Anggota: peran,
+                Bebas_Sokongan: bebas,
+                Status: "AKTIF",
+                Catatan: "",
+                Timestamp: new Date().toISOString()
+            };
+
+            dbState.ANGGOTA.push(memberObj);
+
+            // Add to host schedule
+            const scheduleObj = {
+                ID_Jadwal: `JAD-${Date.now()}`,
+                Tanggal: "",
+                ID_Anggota: newId,
+                Catatan: "",
+                Status: "BELUM"
+            };
+            dbState.JADWAL_TUAN_RUMAH.push(scheduleObj);
+
+            closeAddMemberModal();
+            showToast(`Anggota ${nama} (${newId}) berhasil ditambahkan!`, "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('addMember', { member: memberObj, schedule: scheduleObj });
+                } catch (err) {
+                    console.warn("Gagal simpan anggota ke backend:", err);
+                }
+            }
+
+            refreshDataViews();
+            loadMeetingForDate();
+        }
+
+        function openImportExcelModal() {
+            tempExcelImportData = [];
+            document.getElementById('importPreviewBox').classList.add('hidden');
+            document.getElementById('btnCommitImport').disabled = true;
+            document.getElementById('excelFileInput').value = '';
+            document.getElementById('importExcelModal').classList.remove('hidden');
+        }
+
+        function closeImportExcelModal() {
+            document.getElementById('importExcelModal').classList.add('hidden');
+        }
+
+        function handleExcelPreview(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                tempExcelImportData = json;
+                renderExcelImportPreview(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderExcelImportPreview(json) {
+            let total = json.length;
+            let valid = 0;
+            let duplicate = 0;
+            let error = 0;
+
+            const tbody = document.getElementById('excelPreviewTableBody');
+            tbody.innerHTML = '';
+
+            json.forEach(row => {
+                const nama = row.Nama || row.NAMA || row['Nama Lengkap'] || '';
+                const hp = row.No_HP || row.HP || row['No HP'] || '';
+                const peran = row.Peran_Anggota || row.PERAN || 'ANGGOTA';
+
+                if (!nama) {
+                    error++;
+                    return;
+                }
+
+                const isExist = dbState.ANGGOTA.some(m => m.Nama.toLowerCase() === nama.toLowerCase());
+                if (isExist) {
+                    duplicate++;
+                } else {
+                    valid++;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-2 font-bold">${nama}</td>
+                    <td class="p-2">${hp}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${peran}</span></td>
+                    <td class="p-2">${isExist ? '<span class="text-amber-600 font-bold">Duplikat</span>' : '<span class="text-emerald-600 font-bold">Baru</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('statTotalImport').innerText = total;
+            document.getElementById('statValidImport').innerText = valid;
+            document.getElementById('statDuplicateImport').innerText = duplicate;
+            document.getElementById('statErrorImport').innerText = error;
+
+            document.getElementById('importPreviewBox').classList.remove('hidden');
+            document.getElementById('btnCommitImport').disabled = total === 0;
+        }
+
+        async function commitImportExcel() {
+            const handling = document.getElementById('duplicateHandlingSelect').value;
+            let importedCount = 0;
+
+            const newMembers = [];
+            const newSchedules = [];
+
+            tempExcelImportData.forEach(row => {
+                const nama = row.Nama || row.NAMA || row['Nama Lengkap'] || '';
+                if (!nama) return;
+
+                const isExistIdx = dbState.ANGGOTA.findIndex(m => m.Nama.toLowerCase() === nama.toLowerCase());
+
+                if (isExistIdx >= 0 && handling === 'SKIP') return;
+
+                if (isExistIdx >= 0 && handling === 'UPDATE') {
+                    dbState.ANGGOTA[isExistIdx].No_HP = row.No_HP || dbState.ANGGOTA[isExistIdx].No_HP;
+                    dbState.ANGGOTA[isExistIdx].Alamat = row.Alamat || dbState.ANGGOTA[isExistIdx].Alamat;
+                    importedCount++;
+                    return;
+                }
+
+                const newId = `ANG-${String(dbState.ANGGOTA.length + 1).padStart(4, '0')}`;
+                const mObj = {
+                    ID_Anggota: newId,
+                    Nama: nama,
+                    Nama_Panggilan: row.Nama_Panggilan || row.PANGGILAN || '',
+                    No_HP: row.No_HP || row.HP || '',
+                    Alamat: row.Alamat || '',
+                    Tanggal_Bergabung: new Date().toISOString().split('T')[0],
+                    Peran_Anggota: row.Peran_Anggota || 'ANGGOTA',
+                    Bebas_Sokongan: row.Bebas_Sokongan || 'TIDAK',
+                    Status: 'AKTIF',
+                    Catatan: row.Catatan || '',
+                    Timestamp: new Date().toISOString()
+                };
+
+                const sObj = {
+                    ID_Jadwal: `JAD-${Date.now()}-${newId}`,
+                    Tanggal: "",
+                    ID_Anggota: newId,
+                    Catatan: "",
+                    Status: "BELUM"
+                };
+
+                dbState.ANGGOTA.push(mObj);
+                dbState.JADWAL_TUAN_RUMAH.push(sObj);
+
+                newMembers.push(mObj);
+                newSchedules.push(sObj);
+                importedCount++;
+            });
+
+            closeImportExcelModal();
+            showToast(`Berhasil mengimport ${importedCount} data anggota!`, "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl && newMembers.length > 0) {
+                try {
+                    await apiPost('importMembersBatch', { members: newMembers, schedules: newSchedules });
+                } catch (err) {
+                    console.warn("Gagal import batch ke Apps Script:", err);
+                }
+            }
+
+            refreshDataViews();
+            loadMeetingForDate();
+        }
+
+        function exportMembersToExcel() {
+            const ws = XLSX.utils.json_to_sheet(dbState.ANGGOTA);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Anggota");
+            XLSX.writeFile(wb, "Data_Anggota_Handil_Yasinan.xlsx");
+            showToast("Export data anggota ke Excel berhasil!", "success");
+        }
+
+        function downloadExcelTemplate() {
+            const template = [
+                { Nama: 'Contoh Nama 1', Nama_Panggilan: 'Nama1', No_HP: '08123456789', Alamat: 'Kampung Handil RT 01', Peran_Anggota: 'ANGGOTA', Bebas_Sokongan: 'TIDAK', Catatan: 'Anggota Baru' },
+                { Nama: 'Contoh Nama 2', Nama_Panggilan: 'Nama2', No_HP: '08987654321', Alamat: 'Kampung Handil RT 02', Peran_Anggota: 'BENDAHARA', Bebas_Sokongan: 'YA', Catatan: 'Bebas Iuran' }
+            ];
+            const ws = XLSX.utils.json_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template_Import");
+            XLSX.writeFile(wb, "Template_Import_Anggota_Handil.xlsx");
+        }
+
+        // DEBT MANAGEMENT MODAL CONTROLLERS
+        function openAddDebtModal() {
+            const select = document.getElementById('mDebtMemberSelect');
+            select.innerHTML = '<option value="">-- Pilih Peminjam --</option>';
+            dbState.ANGGOTA.forEach(m => {
+                select.innerHTML += `<option value="${m.ID_Anggota}">${m.Nama} (${m.ID_Anggota})</option>`;
+            });
+            document.getElementById('mDebtTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addDebtModal').classList.remove('hidden');
+        }
+
+        function closeAddDebtModal() {
+            document.getElementById('addDebtModal').classList.add('hidden');
+        }
+
+        async function handleAddDebtSubmit(e) {
+            e.preventDefault();
+            const idAnggota = document.getElementById('mDebtMemberSelect').value;
+            const tanggal = document.getElementById('mDebtTanggal').value;
+            const jumlah = Number(document.getElementById('mDebtJumlah').value) || 0;
+            const ket = document.getElementById('mDebtKeterangan').value.trim();
+
+            if (!idAnggota || jumlah <= 0) {
+                showToast("Pilih anggota dan masukkan nominal hutang yang valid!", "error");
+                return;
+            }
+
+            const newDebtId = `HUT-${Date.now()}`;
+            const debtObj = {
+                ID_Hutang: newDebtId,
+                ID_Anggota: idAnggota,
+                Tanggal_Pinjam: tanggal,
+                Jumlah_Awal: jumlah,
+                Total_Dibayar: 0,
+                Sisa_Hutang: jumlah,
+                Status: "BELUM_LUNAS",
+                Keterangan: ket,
+                Timestamp: new Date().toISOString()
+            };
+
+            dbState.HUTANG_HANDIL.push(debtObj);
+
+            closeAddDebtModal();
+            showToast("Pinjaman hutang baru berhasil dicatat!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('addDebt', debtObj);
+                } catch (err) {
+                    console.warn("Gagal simpan hutang ke Apps Script:", err);
+                }
+            }
+
+            refreshDataViews();
+        }
+
+        function openPayDebtModal(idHutang) {
+            const h = dbState.HUTANG_HANDIL.find(x => x.ID_Hutang === idHutang);
+            if (!h) return;
+
+            const m = dbState.ANGGOTA.find(x => x.ID_Anggota === h.ID_Anggota);
+            const sisa = getDebtRemainingBalance(idHutang);
+
+            document.getElementById('mPayDebtId').value = idHutang;
+            document.getElementById('mPayMemberName').innerText = m ? m.Nama : h.ID_Anggota;
+            document.getElementById('mPayJumlahAwal').innerText = formatRupiah(h.Jumlah_Awal);
+            document.getElementById('mPaySisaHutang').innerText = formatRupiah(sisa);
+            document.getElementById('mPayTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('mPayJumlah').value = sisa;
+
+            document.getElementById('payDebtModal').classList.remove('hidden');
+        }
+
+        function closePayDebtModal() {
+            document.getElementById('payDebtModal').classList.add('hidden');
+        }
+
+        async function handlePayDebtSubmit(e) {
+            e.preventDefault();
+            const idHutang = document.getElementById('mPayDebtId').value;
+            const tanggal = document.getElementById('mPayTanggal').value;
+            const jumlah = Number(document.getElementById('mPayJumlah').value) || 0;
+            const metode = document.getElementById('mPayMetode').value;
+            const ket = document.getElementById('mPayKeterangan').value.trim();
+
+            const h = dbState.HUTANG_HANDIL.find(x => x.ID_Hutang === idHutang);
+            if (!h) return;
+
+            const sisa = getDebtRemainingBalance(idHutang);
+
+            if (jumlah <= 0 || jumlah > sisa) {
+                showToast(`Nominal pembayaran tidak valid! Maksimal pembayaran: ${formatRupiah(sisa)}`, "error");
+                return;
+            }
+
+            const paymentObj = {
+                ID_Pembayaran_Hutang: `BAY-${Date.now()}`,
+                ID_Hutang: idHutang,
+                ID_Anggota: h.ID_Anggota,
+                Tanggal_Pembayaran: tanggal,
+                Jumlah_Pembayaran: jumlah,
+                Metode: metode,
+                Keterangan: ket,
+                Timestamp: new Date().toISOString()
+            };
+
+            dbState.PEMBAYARAN_HUTANG.push(paymentObj);
+
+            // Update status on debt
+            const sisaBaru = getDebtRemainingBalance(idHutang);
+            if (sisaBaru <= 0) {
+                h.Status = "LUNAS";
+            }
+
+            closePayDebtModal();
+            showToast("Pembayaran cicilan hutang berhasil dicatat!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('payDebt', { payment: paymentObj, debt: h });
+                } catch (err) {
+                    console.warn("Gagal simpan bayar hutang ke Apps Script:", err);
+                }
+            }
+
+            refreshDataViews();
+        }
+
+        function showDebtHistory(idHutang) {
+            const h = dbState.HUTANG_HANDIL.find(x => x.ID_Hutang === idHutang);
+            if (!h) return;
+
+            const m = dbState.ANGGOTA.find(x => x.ID_Anggota === h.ID_Anggota);
+            const sisa = getDebtRemainingBalance(idHutang);
+
+            document.getElementById('historyMemberDetails').innerHTML = `
+                <div class="flex justify-between"><span>Peminjam:</span> <strong>${m ? m.Nama : h.ID_Anggota}</strong></div>
+                <div class="flex justify-between"><span>Pinjaman Awal:</span> <strong>${formatRupiah(h.Jumlah_Awal)}</strong></div>
+                <div class="flex justify-between"><span>Sisa Hutang:</span> <strong class="text-amber-700">${formatRupiah(sisa)}</strong></div>
+            `;
+
+            const tbody = document.getElementById('historyDebtTableBody');
+            tbody.innerHTML = '';
+
+            const payments = dbState.PEMBAYARAN_HUTANG.filter(p => p.ID_Hutang === idHutang);
+            if (payments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada riwayat pembayaran</td></tr>`;
+            } else {
+                payments.forEach(p => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                    tr.innerHTML = `
+                        <td class="p-2.5 font-medium">${p.Tanggal_Pembayaran}</td>
+                        <td class="p-2.5 text-right font-bold text-emerald-700">${formatRupiah(p.Jumlah_Pembayaran)}</td>
+                        <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${p.Metode}</span></td>
+                        <td class="p-2.5 text-slate-600">${p.Keterangan || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('historyDebtModal').classList.remove('hidden');
+        }
+
+        function closeHistoryDebtModal() {
+            document.getElementById('historyDebtModal').classList.add('hidden');
+        }
+
+        // SAFAR DISTRIBUTION & RECONCILIATION
+        async function executeSafarDistribution() {
+            const listSafar = [];
+            const listPayHutang = [];
+
+            dbState.ANGGOTA.forEach(m => {
+                const tabBruto = getMemberTotalSavings(m.ID_Anggota);
+                const tunggakan = getMemberCumulativeArrears(m.ID_Anggota);
+                const sisaHutang = getMemberTotalDebt(m.ID_Anggota);
+
+                const potongTunggakan = Math.min(tabBruto, tunggakan);
+                const tabAfterArrears = tabBruto - potongTunggakan;
+                const potongHutang = Math.min(tabAfterArrears, sisaHutang);
+                const tabBersih = Math.max(0, tabAfterArrears - potongHutang);
+
+                listSafar.push({
+                    ID_Pembagian: `SAF-${Date.now()}-${m.ID_Anggota}`,
+                    Tanggal: new Date().toISOString().split('T')[0],
+                    ID_Anggota: m.ID_Anggota,
+                    Tabungan_Bruto: tabBruto,
+                    Potongan_Tunggakan: potongTunggakan,
+                    Potongan_Hutang: potongHutang,
+                    Tabungan_Bersih: tabBersih,
+                    Timestamp: new Date().toISOString()
+                });
+
+                // Auto payoff debt if deducted
+                if (potongHutang > 0) {
+                    const memberDebts = dbState.HUTANG_HANDIL.filter(h => h.ID_Anggota === m.ID_Anggota && getDebtRemainingBalance(h.ID_Hutang) > 0);
+                    let remPotong = potongHutang;
+
+                    memberDebts.forEach(h => {
+                        if (remPotong <= 0) return;
+                        const sisaH = getDebtRemainingBalance(h.ID_Hutang);
+                        const payAmt = Math.min(remPotong, sisaH);
+
+                        const pObj = {
+                            ID_Pembayaran_Hutang: `BAY-SAFAR-${Date.now()}-${h.ID_Hutang}`,
+                            ID_Hutang: h.ID_Hutang,
+                            ID_Anggota: m.ID_Anggota,
+                            Tanggal_Pembayaran: new Date().toISOString().split('T')[0],
+                            Jumlah_Pembayaran: payAmt,
+                            Metode: "POTONG_TABUNGAN_SAFAR",
+                            Keterangan: "Otomatis potong dari Tabungan Safar",
+                            Timestamp: new Date().toISOString()
+                        };
+
+                        listPayHutang.push(pObj);
+                        dbState.PEMBAYARAN_HUTANG.push(pObj);
+                        remPotong -= payAmt;
+
+                        if (getDebtRemainingBalance(h.ID_Hutang) <= 0) {
+                            h.Status = "LUNAS";
+                        }
+                    });
+                }
+            });
+
+            dbState.PEMBAGIAN_SAFAR = listSafar;
+
+            showToast("Eksekusi Pembagian Tabungan Safar berhasil dilakukan!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('executeSafarDistribution', { safarEntries: listSafar, payments: listPayHutang });
+                } catch (err) {
+                    console.warn("Gagal kirim eksekusi Safar ke Apps Script:", err);
+                }
+            }
+
+            refreshDataViews();
+        }
+
+        function openAddCashModal() {
+            document.getElementById('mCashTanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addCashModal').classList.remove('hidden');
+        }
+
+        function closeAddCashModal() {
+            document.getElementById('addCashModal').classList.add('hidden');
+        }
+
+        async function handleAddCashSubmit(e) {
+            e.preventDefault();
+            const tanggal = document.getElementById('mCashTanggal').value;
+            const jenis = document.getElementById('mCashJenis').value;
+            const nominal = Number(document.getElementById('mCashNominal').value) || 0;
+            const ket = document.getElementById('mCashKeterangan').value.trim();
+
+            if (nominal <= 0) return;
+
+            const cashObj = {
+                ID_Kas: `KAS-${Date.now()}`,
+                ID_Pertemuan: "-",
+                Tanggal: tanggal,
+                Jenis: jenis,
+                Keterangan: ket,
+                Nominal: nominal,
+                Saldo: 0,
+                Timestamp: new Date().toISOString()
+            };
+
+            dbState.KAS.push(cashObj);
+            closeAddCashModal();
+            showToast("Transaksi kas manual berhasil dicatat!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('addCashTransaction', cashObj);
+                } catch (err) {
+                    console.warn("Gagal simpan kas ke Apps Script:", err);
+                }
+            }
+
+            refreshDataViews();
+        }
+
+        function calculateReconciliation() {
+            const kasKomunitas = dbState.KAS.length > 0 ? Number(dbState.KAS[dbState.KAS.length - 1].Saldo || 0) : 0;
+            let totalTabungan = 0;
+            dbState.ANGGOTA.forEach(m => totalTabungan += getMemberTotalSavings(m.ID_Anggota));
+
+            const totalUangFisikSistem = kasKomunitas + totalTabungan;
+            const inputFisik = Number(document.getElementById('recoSaldoFisik').value) || 0;
+            const selisih = inputFisik - totalUangFisikSistem;
+
+            document.getElementById('recoSaldoSistem').value = formatRupiah(totalUangFisikSistem);
+            document.getElementById('recoSelisih').value = formatRupiah(selisih);
+
+            const elemSelisih = document.getElementById('recoSelisih');
+            if (selisih === 0) {
+                elemSelisih.className = "w-full bg-emerald-100 border border-emerald-300 rounded-xl p-2.5 font-bold text-emerald-800";
+            } else if (selisih < 0) {
+                elemSelisih.className = "w-full bg-rose-100 border border-rose-300 rounded-xl p-2.5 font-bold text-rose-800";
+            } else {
+                elemSelisih.className = "w-full bg-blue-100 border border-blue-300 rounded-xl p-2.5 font-bold text-blue-800";
+            }
+        }
+
+        async function saveReconciliationAction() {
+            const fisik = Number(document.getElementById('recoSaldoFisik').value) || 0;
+            const selisihStr = document.getElementById('recoSelisih').value;
+            const ket = document.getElementById('recoCatatan').value;
+
+            const recoObj = {
+                ID_Reko: `REK-${Date.now()}`,
+                Tanggal: new Date().toISOString().split('T')[0],
+                Saldo_Sistem: document.getElementById('recoSaldoSistem').value,
+                Saldo_Fisik: formatRupiah(fisik),
+                Selisih: selisihStr,
+                Keterangan: ket,
+                Timestamp: new Date().toISOString()
+            };
+
+            dbState.REKONSILIASI.push(recoObj);
+            showToast("Form rekonsiliasi kas berhasil disimpan!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('saveReconciliation', recoObj);
+                } catch (err) {
+                    console.warn("Gagal simpan rekonsiliasi ke Apps Script:", err);
+                }
+            }
+        }
+
+        function resetAllDataAction() {
+            document.getElementById('resetInputConfirm').value = '';
+            document.getElementById('resetConfirmModal').classList.remove('hidden');
+        }
+
+        function closeResetConfirmModal() {
+            document.getElementById('resetConfirmModal').classList.add('hidden');
+        }
+
+        async function executeResetAllData() {
+            const inputVal = document.getElementById('resetInputConfirm').value.trim().toUpperCase();
+            if (inputVal !== 'RESET') {
+                showToast("Kata kunci konfirmasi salah! Ketik 'RESET' untuk melanjutkan.", "error");
+                return;
+            }
+
+            clearProductionData();
+            closeResetConfirmModal();
+            showToast("Seluruh data aplikasi berhasil direset!", "success");
+
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                try {
+                    await apiPost('resetAllData', {});
+                } catch (err) {
+                    console.warn("Gagal reset data di server backend:", err);
+                }
+            }
+
+            refreshDataViews();
+            loadMeetingForDate();
+        }
+
+        // INITIAL DEMO DATA GENERATOR
+        function initDemoData() {
+            dbState = {
+                SETTINGS: [{ Key: 'Default_Contribution', Value: '10000' }],
+                ANGGOTA: [
+                    { ID_Anggota: 'ANG-0001', Nama: 'Ahmadi', Nama_Panggilan: 'Ahmadi', No_HP: '081234567890', Alamat: 'RT 01 Kampung Handil', Tanggal_Bergabung: '2026-01-01', Peran_Anggota: 'BENDAHARA', Bebas_Sokongan: 'YA', Status: 'AKTIF', Catatan: 'Pengurus Utama', Timestamp: new Date().toISOString() },
+                    { ID_Anggota: 'ANG-0002', Nama: 'Azan', Nama_Panggilan: 'Azan', No_HP: '081298765432', Alamat: 'RT 01 Kampung Handil', Tanggal_Bergabung: '2026-01-01', Peran_Anggota: 'BENDAHARA', Bebas_Sokongan: 'YA', Status: 'AKTIF', Catatan: 'Pengurus Kas', Timestamp: new Date().toISOString() },
+                    { ID_Anggota: 'ANG-0003', Nama: 'Haji Subhan', Nama_Panggilan: 'Subhan', No_HP: '081345678901', Alamat: 'RT 02 Kampung Handil', Tanggal_Bergabung: '2026-01-05', Peran_Anggota: 'ANGGOTA', Bebas_Sokongan: 'TIDAK', Status: 'AKTIF', Catatan: '', Timestamp: new Date().toISOString() },
+                    { ID_Anggota: 'ANG-0004', Nama: 'M. Syahrani', Nama_Panggilan: 'Rani', No_HP: '081356789012', Alamat: 'RT 02 Kampung Handil', Tanggal_Bergabung: '2026-01-05', Peran_Anggota: 'ANGGOTA', Bebas_Sokongan: 'TIDAK', Status: 'AKTIF', Catatan: '', Timestamp: new Date().toISOString() },
+                    { ID_Anggota: 'ANG-0005', Nama: 'Bahruddin', Nama_Panggilan: 'Bahru', No_HP: '081367890123', Alamat: 'RT 03 Kampung Handil', Tanggal_Bergabung: '2026-01-10', Peran_Anggota: 'ANGGOTA', Bebas_Sokongan: 'TIDAK', Status: 'AKTIF', Catatan: '', Timestamp: new Date().toISOString() }
+                ],
+                PERTEMUAN: [
+                    { ID_Pertemuan: 'PERT-0001', Tanggal: '2026-10-01', Status: 'CLOSED', ID_Tuan_Rumah: 'ANG-0003', Biaya_Konsumsi: 300000, Total_Sokongan: 30000, Total_Tabungan: 100000, Total_Bersih: -170000, Timestamp_Dibuat: new Date().toISOString(), Timestamp_Diperbarui: new Date().toISOString(), Timestamp_Ditutup: new Date().toISOString() }
+                ],
+                KEHADIRAN: [
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0001', Status_Hadir: 'HADIR', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0002', Status_Hadir: 'HADIR', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0003', Status_Hadir: 'HADIR', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0004', Status_Hadir: 'HADIR', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0005', Status_Hadir: 'TIDAK_HADIR', Timestamp: new Date().toISOString() }
+                ],
+                SOKONGAN_WAJIB: [
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0001', Kewajiban: 0, Dibayar: 0, Tunggakan: 0, Status_Bayar: 'BEBAS', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0002', Kewajiban: 0, Dibayar: 0, Tunggakan: 0, Status_Bayar: 'BEBAS', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0003', Kewajiban: 10000, Dibayar: 10000, Tunggakan: 0, Status_Bayar: 'LUNAS', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0004', Kewajiban: 10000, Dibayar: 10000, Tunggakan: 0, Status_Bayar: 'LUNAS', Timestamp: new Date().toISOString() },
+                    { ID_Pertemuan: 'PERT-0001', ID_Anggota: 'ANG-0005', Kewajiban: 10000, Dibayar: 0, Tunggakan: 10000, Status_Bayar: 'BELUM_BAYAR', Timestamp: new Date().toISOString() }
+                ],
+                TABUNGAN: [
+                    { ID_Transaksi: 'TAB-1001', ID_Anggota: 'ANG-0003', ID_Pertemuan: 'PERT-0001', Tanggal: '2026-10-01', Nominal: 50000, Metode: 'TUNAI', Keterangan: 'Tabungan Malam Jumat', Timestamp: new Date().toISOString() },
+                    { ID_Transaksi: 'TAB-1002', ID_Anggota: 'ANG-0004', ID_Pertemuan: 'PERT-0001', Tanggal: '2026-10-01', Nominal: 50000, Metode: 'TUNAI', Keterangan: 'Tabungan Malam Jumat', Timestamp: new Date().toISOString() }
+                ],
+                HUTANG_HANDIL: [
+                    { ID_Hutang: 'HUT-0001', ID_Anggota: 'ANG-0005', Tanggal_Pinjam: '2026-09-15', Jumlah_Awal: 500000, Total_Dibayar: 100000, Sisa_Hutang: 400000, Status: 'BELUM_LUNAS', Keterangan: 'Modal Usaha Kecil', Timestamp: new Date().toISOString() }
+                ],
+                PEMBAYARAN_HUTANG: [
+                    { ID_Pembayaran_Hutang: 'BAY-0001', ID_Hutang: 'HUT-0001', ID_Anggota: 'ANG-0005', Tanggal_Pembayaran: '2026-09-25', Jumlah_Pembayaran: 100000, Metode: 'TUNAI', Keterangan: 'Cicilan Ke-1', Timestamp: new Date().toISOString() }
+                ],
+                KAS: [
+                    { ID_Kas: 'KAS-0001', ID_Pertemuan: 'PERT-0001', Tanggal: '2026-10-01', Jenis: 'MASUK', Keterangan: 'Penerimaan Sokongan Malam Jumat', Nominal: 30000, Saldo: 30000, Timestamp: new Date().toISOString() },
+                    { ID_Kas: 'KAS-0002', ID_Pertemuan: 'PERT-0001', Tanggal: '2026-10-01', Jenis: 'KELUAR', Keterangan: 'Biaya Konsumsi Malam Jumat', Nominal: 300000, Saldo: -270000, Timestamp: new Date().toISOString() }
+                ],
+                JADWAL_TUAN_RUMAH: [
+                    { ID_Jadwal: 'JAD-001', Tanggal: '2026-10-01', ID_Anggota: 'ANG-0003', Catatan: '', Status: 'SELESAI' },
+                    { ID_Jadwal: 'JAD-002', Tanggal: '2026-10-08', ID_Anggota: 'ANG-0004', Catatan: '', Status: 'BERIKUTNYA' },
+                    { ID_Jadwal: 'JAD-003', Tanggal: '', ID_Anggota: 'ANG-0005', Catatan: '', Status: 'BELUM' }
+                ],
+                PEMBAGIAN_SAFAR: [],
+                REKONSILIASI: [],
+                LOG_AKTIVITAS: [
+                    { ID_Log: 'LOG-001', Timestamp: new Date().toISOString(), Aktivitas: 'SYSTEM_INIT', ID_Anggota: '-', ID_Pertemuan: '-', ID_Transaksi: '-', Keterangan: 'Aplikasi Administrasi Handil Yasinan Berhasil Diinisialisasi (Demo)' }
+                ]
+            };
+        }
+
+        function populateHostSelectOptions() {
+            const hostSelect = document.getElementById('meetingHostSelect');
+            const manualPicker = document.getElementById('manualHostPicker');
+            
+            const currentSelected = currentMeetingState.ID_Tuan_Rumah;
+
+            if (hostSelect) {
+                hostSelect.innerHTML = '<option value="">-- Pilih Tuan Rumah --</option>';
+                dbState.ANGGOTA.forEach(m => {
+                    const selected = (m.ID_Anggota === currentSelected) ? 'selected' : '';
+                    hostSelect.innerHTML += `<option value="${m.ID_Anggota}" ${selected}>${m.Nama} (${m.ID_Anggota}) - ${m.Alamat || 'Handil'}</option>`;
+                });
+            }
+
+            if (manualPicker) {
+                const nextHost = dbState.JADWAL_TUAN_RUMAH.find(j => j.Status === "BERIKUTNYA");
+                manualPicker.innerHTML = '<option value="">-- Pilih Tuan Rumah --</option>';
+                dbState.ANGGOTA.forEach(m => {
+                    const selected = (nextHost && nextHost.ID_Anggota === m.ID_Anggota) ? 'selected' : '';
+                    manualPicker.innerHTML += `<option value="${m.ID_Anggota}" ${selected}>${m.Nama}</option>`;
+                });
+            }
+        }
+
+        function setManualNextHost(idAnggota) {
+            if (!idAnggota) return;
+            dbState.JADWAL_TUAN_RUMAH.forEach(j => {
+                if (j.ID_Anggota === idAnggota) {
+                    j.Status = "BERIKUTNYA";
+                } else if (j.Status === "BERIKUTNYA") {
+                    j.Status = "BELUM";
+                }
+            });
+            showToast("Tuan rumah berikutnya berhasil diperbarui secara manual!", "success");
+            refreshDataViews();
+        }
+
+        function loadMeetingForDate() {
+            const dateInput = document.getElementById('meetingDatePicker').value;
+            if (!dateInput) return;
+
+            let meeting = dbState.PERTEMUAN.find(p => p.Tanggal === dateInput);
+            
+            if (meeting) {
+                currentMeetingState.ID_Pertemuan = meeting.ID_Pertemuan;
+                currentMeetingState.Tanggal = meeting.Tanggal;
+                currentMeetingState.Status = meeting.Status;
+                currentMeetingState.ID_Tuan_Rumah = meeting.ID_Tuan_Rumah || (dbState.ANGGOTA[0]?.ID_Anggota || '');
+                currentMeetingState.Biaya_Konsumsi = meeting.Biaya_Konsumsi || 300000;
+            } else {
+                const newId = `PERT-${String(dbState.PERTEMUAN.length + 1).padStart(4, '0')}`;
+                currentMeetingState.ID_Pertemuan = newId;
+                currentMeetingState.Tanggal = dateInput;
+                currentMeetingState.Status = "OPEN";
+                
+                const nextHost = dbState.JADWAL_TUAN_RUMAH.find(j => j.Status === "BERIKUTNYA");
+                currentMeetingState.ID_Tuan_Rumah = nextHost ? nextHost.ID_Anggota : (dbState.ANGGOTA[0]?.ID_Anggota || '');
+                currentMeetingState.Biaya_Konsumsi = APP_CONFIG.defaultConsumptionCost;
+            }
+
+            populateHostSelectOptions();
+            document.getElementById('meetingConsumptionCost').value = currentMeetingState.Biaya_Konsumsi;
+            document.getElementById('meetingIdDisplay').innerText = `ID: ${currentMeetingState.ID_Pertemuan}`;
+
+            const badge = document.getElementById('meetingStatusBadge');
+            const isClosed = currentMeetingState.Status === "CLOSED";
+            
+            if (isClosed) {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200";
+                badge.innerHTML = `<i class="fa-solid fa-lock mr-1"></i> STATUS: CLOSED (FINAL)`;
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200";
+                badge.innerHTML = `<i class="fa-solid fa-folder-open mr-1"></i> STATUS: OPEN (DRAFT)`;
+            }
+
+            document.getElementById('btnSaveDraft').disabled = isClosed;
+            document.getElementById('btnCloseMeeting').disabled = isClosed;
+            document.getElementById('btnHadirSemua').disabled = isClosed;
+
+            currentMeetingState.attendanceMap = {};
+
+            dbState.ANGGOTA.forEach(m => {
+                const isExempt = m.Bebas_Sokongan === "YA";
+                const existingSok = dbState.SOKONGAN_WAJIB.find(s => s.ID_Pertemuan === currentMeetingState.ID_Pertemuan && s.ID_Anggota === m.ID_Anggota);
+                const existingKehadiran = dbState.KEHADIRAN.find(k => k.ID_Pertemuan === currentMeetingState.ID_Pertemuan && k.ID_Anggota === m.ID_Anggota);
+                const existingTab = dbState.TABUNGAN.find(t => t.ID_Pertemuan === currentMeetingState.ID_Pertemuan && t.ID_Anggota === m.ID_Anggota);
+
+                let isHadir = existingKehadiran ? (existingKehadiran.Status_Hadir === "HADIR") : true;
+                let bayarSok = 0;
+                let tabungan = existingTab ? Number(existingTab.Nominal || 0) : 0;
+
+                if (existingSok) {
+                    bayarSok = Number(existingSok.Dibayar || 0);
+                } else {
+                    if (isExempt) {
+                        bayarSok = 0;
+                    } else {
+                        bayarSok = isHadir ? APP_CONFIG.defaultWeeklyContribution : 0;
+                    }
+                }
+
+                currentMeetingState.attendanceMap[m.ID_Anggota] = {
+                    Hadir: isHadir,
+                    BayarSokongan: bayarSok,
+                    Tabungan: tabungan,
+                    ManualEdited: existingSok ? true : false
+                };
+            });
+
+            renderMeetingAttendanceTable();
+        }
+
+        function refreshDataViews() {
+            let kasKomunitas = dbState.KAS.length > 0 ? Number(dbState.KAS[dbState.KAS.length - 1].Saldo || 0) : 0;
+            let totalTabungan = 0;
+            let totalHutang = 0;
+            let totalTunggakan = 0;
+
+            dbState.ANGGOTA.forEach(m => {
+                totalTabungan += getMemberTotalSavings(m.ID_Anggota);
+                totalHutang += getMemberTotalDebt(m.ID_Anggota);
+                totalTunggakan += getMemberCumulativeArrears(m.ID_Anggota);
+            });
+
+            let totalUangFisik = kasKomunitas + totalTabungan;
+
+            document.getElementById('dashKasKomunitas').innerText = formatRupiah(kasKomunitas);
+            document.getElementById('dashTabunganAnggota').innerText = formatRupiah(totalTabungan);
+            document.getElementById('dashHutangAnggota').innerText = formatRupiah(totalHutang);
+            document.getElementById('dashTunggakanSokongan').innerText = formatRupiah(totalTunggakan);
+            document.getElementById('dashTotalUangFisik').innerText = formatRupiah(totalUangFisik);
+
+            document.getElementById('neracaKasKomunitas').innerText = formatRupiah(kasKomunitas);
+            document.getElementById('neracaTabungan').innerText = formatRupiah(totalTabungan);
+            document.getElementById('neracaTunggakan').innerText = formatRupiah(totalTunggakan);
+            document.getElementById('neracaHutang').innerText = formatRupiah(totalHutang);
+            document.getElementById('neracaTotalAset').innerText = formatRupiah(kasKomunitas + totalTunggakan + totalHutang);
+
+            const lastMeeting = dbState.PERTEMUAN[dbState.PERTEMUAN.length - 1];
+            const nextHost = dbState.JADWAL_TUAN_RUMAH.find(j => j.Status === "BERIKUTNYA") || dbState.JADWAL_TUAN_RUMAH[0];
+            const hostMember = dbState.ANGGOTA.find(m => m.ID_Anggota === (nextHost ? nextHost.ID_Anggota : ""));
+
+            document.getElementById('dashStatusPertemuanBox').innerHTML = `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div>
+                        <span class="text-xs text-slate-500">Pertemuan Terakhir:</span>
+                        <h4 class="font-bold text-slate-800 text-sm">${lastMeeting ? lastMeeting.Tanggal + ' (' + lastMeeting.ID_Pertemuan + ')' : 'Belum Ada'}</h4>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold ${lastMeeting && lastMeeting.Status === 'CLOSED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">
+                        ${lastMeeting ? lastMeeting.Status : 'OPEN'}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                    <div>
+                        <span class="text-xs text-emerald-700 font-medium">Tuan Rumah Giliran Berikutnya:</span>
+                        <h4 class="font-bold text-emerald-900 text-sm">${hostMember ? hostMember.Nama : 'Belum Diatur'}</h4>
+                    </div>
+                    <div class="w-8 h-8 bg-emerald-600 text-white rounded-lg flex items-center justify-center font-bold text-xs">
+                        <i class="fa-solid fa-house"></i>
+                    </div>
+                </div>
+            `;
+
+            const dashArrearsTbody = document.getElementById('dashTunggakanTableBody');
+            dashArrearsTbody.innerHTML = '';
+            let penunggakCount = 0;
+
+            dbState.ANGGOTA.forEach(m => {
+                const arr = getMemberCumulativeArrears(m.ID_Anggota);
+                if (arr > 0) {
+                    penunggakCount++;
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono font-bold">${m.ID_Anggota}</td>
+                        <td class="p-3 font-semibold text-slate-800">${m.Nama}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${m.Peran_Anggota}</span></td>
+                        <td class="p-3 text-right font-bold text-rose-600">${formatRupiah(arr)}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="switchTab('pertemuans')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg font-semibold text-[10px]">
+                                Catat Bayar
+                            </button>
+                        </td>
+                    `;
+                    dashArrearsTbody.appendChild(tr);
+                }
+            });
+            document.getElementById('dashJumlahPenunggak').innerText = `${penunggakCount} Anggota`;
+
+            renderMemberTable();
+            renderSavingsTable();
+            renderDebtTable();
+            renderHostScheduleTable();
+            renderCashTable();
+            renderSafarTable();
+            renderAuditLogTable();
+            populateHostSelectOptions();
+            calculateReconciliation();
+        }
+
+        function renderMemberTable() {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = '';
+
+            dbState.ANGGOTA.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-slate-600 font-bold">${m.ID_Anggota}</td>
+                    <td class="p-3 font-bold text-slate-800">${m.Nama}</td>
+                    <td class="p-3 text-slate-600">${m.Nama_Panggilan || '-'}</td>
+                    <td class="p-3 font-mono text-slate-600">${m.No_HP || '-'}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.Peran_Anggota === 'BENDAHARA' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">${m.Peran_Anggota}</span></td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.Bebas_Sokongan === 'YA' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'}">${m.Bebas_Sokongan}</span></td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.Status === 'AKTIF' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${m.Status}</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="showToast('Data ID ${m.ID_Anggota} tersimpan aman.', 'info')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-eye"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterMemberTable() {
+            const q = document.getElementById('memberSearchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#memberTableBody tr');
+            rows.forEach(r => {
+                const text = r.innerText.toLowerCase();
+                r.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+
+        function renderSavingsTable() {
+            const tbody = document.getElementById('savingsTableBody');
+            tbody.innerHTML = '';
+
+            let totalDana = 0;
+            let penabungCount = 0;
+
+            dbState.ANGGOTA.forEach(m => {
+                const total = getMemberTotalSavings(m.ID_Anggota);
+                totalDana += total;
+                if (total > 0) penabungCount++;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-slate-500 font-bold">${m.ID_Anggota}</td>
+                    <td class="p-3 font-bold text-slate-800">${m.Nama}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${m.Peran_Anggota}</span></td>
+                    <td class="p-3 text-right font-extrabold text-blue-700">${formatRupiah(total)}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${total > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'}">
+                            ${total > 0 ? 'AKTIF MENABUNG' : 'KOSONG'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tabunganTotalDana').innerText = formatRupiah(totalDana);
+            document.getElementById('tabunganTotalPenabung').innerText = `${penabungCount} Anggota`;
+            document.getElementById('tabunganRataRata').innerText = formatRupiah(dbState.ANGGOTA.length > 0 ? totalDana / dbState.ANGGOTA.length : 0);
+        }
+
+        function renderDebtTable() {
+            const tbody = document.getElementById('debtTableBody');
+            tbody.innerHTML = '';
+
+            dbState.HUTANG_HANDIL.forEach(h => {
+                const member = dbState.ANGGOTA.find(m => m.ID_Anggota === h.ID_Anggota);
+                const sisa = getDebtRemainingBalance(h.ID_Hutang);
+                const dibayar = Number(h.Jumlah_Awal) - sisa;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-slate-700">${h.ID_Hutang}</td>
+                    <td class="p-3 font-bold text-slate-800">${member ? member.Nama : h.ID_Anggota}</td>
+                    <td class="p-3 font-medium text-slate-600">${h.Tanggal_Pinjam}</td>
+                    <td class="p-3 text-right font-medium text-slate-700">${formatRupiah(h.Jumlah_Awal)}</td>
+                    <td class="p-3 text-right font-medium text-emerald-700">${formatRupiah(dibayar)}</td>
+                    <td class="p-3 text-right font-bold text-amber-700">${formatRupiah(sisa)}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${sisa <= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                            ${sisa <= 0 ? 'LUNAS' : 'BELUM LUNAS'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-center space-x-1">
+                        ${sisa > 0 ? `<button onclick="openPayDebtModal('${h.ID_Hutang}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-bold">BAYAR</button>` : ''}
+                        <button onclick="showDebtHistory('${h.ID_Hutang}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px] font-bold">RIWAYAT</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderHostScheduleTable() {
+            const tbody = document.getElementById('hostScheduleTableBody');
+            tbody.innerHTML = '';
+
+            dbState.JADWAL_TUAN_RUMAH.forEach((j, idx) => {
+                const member = dbState.ANGGOTA.find(m => m.ID_Anggota === j.ID_Anggota);
+                if (!member) return;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-500">#${idx + 1}</td>
+                    <td class="p-3 font-bold text-slate-800">${member.Nama}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${member.Peran_Anggota}</span></td>
+                    <td class="p-3 text-slate-600">${member.Alamat || '-'}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${j.Status === 'SELESAI' ? 'bg-slate-100 text-slate-500' : (j.Status === 'BERIKUTNYA' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800')}">
+                            ${j.Status}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCashTable() {
+            const tbody = document.getElementById('cashTableBody');
+            tbody.innerHTML = '';
+
+            let runningSaldo = 0;
+            dbState.KAS.forEach(k => {
+                const isMasuk = k.Jenis === "MASUK";
+                runningSaldo = isMasuk ? runningSaldo + Number(k.Nominal) : runningSaldo - Number(k.Nominal);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-slate-500 font-bold">${k.ID_Kas}</td>
+                    <td class="p-3 font-medium text-slate-700">${k.Tanggal}</td>
+                    <td class="p-3 font-mono text-slate-500">${k.ID_Pertemuan || '-'}</td>
+                    <td class="p-3 font-medium text-slate-800">${k.Keterangan}</td>
+                    <td class="p-3 text-right font-bold text-emerald-700">${isMasuk ? formatRupiah(k.Nominal) : '-'}</td>
+                    <td class="p-3 text-right font-bold text-rose-700">${!isMasuk ? formatRupiah(k.Nominal) : '-'}</td>
+                    <td class="p-3 text-right font-extrabold text-slate-800">${formatRupiah(runningSaldo)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('cashBookSaldo').innerText = formatRupiah(runningSaldo);
+        }
+
+        function renderSafarTable() {
+            const tbody = document.getElementById('safarTableBody');
+            tbody.innerHTML = '';
+
+            dbState.ANGGOTA.forEach(m => {
+                const tabBruto = getMemberTotalSavings(m.ID_Anggota);
+                const tunggakan = getMemberCumulativeArrears(m.ID_Anggota);
+                const sisaHutang = getMemberTotalDebt(m.ID_Anggota);
+
+                const potongTunggakan = Math.min(tabBruto, tunggakan);
+                const tabAfterArrears = tabBruto - potongTunggakan;
+                const potongHutang = Math.min(tabAfterArrears, sisaHutang);
+                const tabBersih = Math.max(0, tabAfterArrears - potongHutang);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-800">${m.Nama} <span class="text-[10px] text-slate-400">(${m.ID_Anggota})</span></td>
+                    <td class="p-3 text-right font-semibold text-blue-700">${formatRupiah(tabBruto)}</td>
+                    <td class="p-3 text-right font-semibold text-rose-600">${formatRupiah(potongTunggakan)}</td>
+                    <td class="p-3 text-right font-semibold text-amber-600">${formatRupiah(potongHutang)}</td>
+                    <td class="p-3 text-right font-extrabold text-emerald-800 text-sm">${formatRupiah(tabBersih)}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${tabBersih > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+                            ${tabBersih > 0 ? 'SIAP DIBAGIKAN' : 'NIHIL'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderAuditLogTable() {
+            const tbody = document.getElementById('auditLogTableBody');
+            tbody.innerHTML = '';
+
+            dbState.LOG_AKTIVITAS.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono text-[10px] text-slate-500">${log.Timestamp}</td>
+                    <td class="p-3 font-bold text-emerald-800"><span class="bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">${log.Aktivitas}</span></td>
+                    <td class="p-3 font-mono text-slate-600">${log.ID_Anggota}</td>
+                    <td class="p-3 font-mono text-slate-600">${log.ID_Pertemuan}</td>
+                    <td class="p-3 font-mono text-slate-600">${log.ID_Transaksi}</td>
+                    <td class="p-3 text-slate-700">${log.Keterangan}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportAuditLogToExcel() {
+            const ws = XLSX.utils.json_to_sheet(dbState.LOG_AKTIVITAS);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Audit_Log");
+            XLSX.writeFile(wb, "Audit_Log_Handil_Yasinan.xlsx");
+            showToast("Export Audit Log ke Excel berhasil!", "success");
+        }
+
+        function clearProductionData() {
+            dbState = {
+                SETTINGS: [],
+                ANGGOTA: [],
+                PERTEMUAN: [],
+                KEHADIRAN: [],
+                SOKONGAN_WAJIB: [],
+                TABUNGAN: [],
+                HUTANG_HANDIL: [],
+                PEMBAYARAN_HUTANG: [],
+                KAS: [],
+                JADWAL_TUAN_RUMAH: [],
+                PEMBAGIAN_SAFAR: [],
+                REKONSILIASI: [],
+                LOG_AKTIVITAS: []
+            };
+        }
+
+        async function fetchProductionData() {
+            if (!APP_CONFIG.webAppUrl) return;
+            try {
+                showToast("Mengambil data produksi dari Google Sheets...", "info");
+                const resData = await apiGet('getDatabase');
+                if (resData && resData.status === 'SUCCESS' && resData.data) {
+                    dbState = { ...dbState, ...resData.data };
+                    showToast("Data produksi berhasil dimuat dari Google Sheets!", "success");
+                } else {
+                    showToast("Gagal memuat data produksi: " + (resData ? resData.message : "Respons tidak valid"), "error");
+                }
+            } catch (err) {
+                showToast("Gagal mengambil data dari Google Sheets: " + err.message, "error");
+            }
+        }
+
+        // FULL BACKEND GOOGLE APPS SCRIPT CODE (Code.gs)
+        const GOOGLE_APPS_SCRIPT_CODE = `/**
+ * ============================================================
+ * BACKEND CODE: ADMINISTRASI HANDIL YASINAN
+ * ============================================================
+ * Google Apps Script Web App Backend & Database API
+ * 
+ * ATURAN DEPLOYMENT WAJIB:
+ * 1. Execute as (Jalankan sebagai): Me / Saya
+ * 2. Who has access (Akses): Anyone / Siapa saja
+ */
+
+function doGet(e) {
+  const action = e ? e.parameter.action : '';
+  const callback = e ? e.parameter.callback : null;
+  let result = { status: 'SUCCESS', message: 'Google Apps Script terhubung.' };
+  
+  try {
+    if (action === 'getDatabase') {
+      result = { status: 'SUCCESS', data: getDatabaseData() };
+    } else if (action === 'ping') {
+      result = { status: 'SUCCESS', message: 'Google Apps Script terhubung.' };
+    } else {
+      result = { status: 'SUCCESS', data: getDatabaseData() };
+    }
+  } catch (err) {
+    result = { status: 'ERROR', message: err.toString() };
+  }
+
+  const jsonString = JSON.stringify(result);
+  if (callback) {
+    return ContentService.createTextOutput(callback + '(' + jsonString + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else {
+    return ContentService.createTextOutput(jsonString)
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    const postData = JSON.parse(e.postData.contents);
+    const action = postData.action;
+    const payload = postData.data || {};
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    setupDatabase(); // Non-destructive header setup
+
+    let result = { status: 'SUCCESS', message: 'Data berhasil diproses' };
+
+    if (action === 'saveMeetingDraft') {
+      saveMeetingDraftBackend(ss, payload);
+    } else if (action === 'closeMeeting') {
+      closeMeetingBackend(ss, payload);
+    } else if (action === 'addMember') {
+      addMemberBackend(ss, payload);
+    } else if (action === 'importMembersBatch') {
+      importMembersBatchBackend(ss, payload);
+    } else if (action === 'addDebt') {
+      appendObjectToSheet(ss, 'HUTANG_HANDIL', payload, getHeaders('HUTANG_HANDIL'));
+    } else if (action === 'payDebt') {
+      payDebtBackend(ss, payload);
+    } else if (action === 'executeSafarDistribution') {
+      executeSafarDistributionBackend(ss, payload);
+    } else if (action === 'addCashTransaction') {
+      appendObjectToSheet(ss, 'KAS', payload, getHeaders('KAS'));
+    } else if (action === 'saveReconciliation') {
+      appendObjectToSheet(ss, 'REKONSILIASI', payload, getHeaders('REKONSILIASI'));
+    } else if (action === 'writeAuditLog') {
+      appendObjectToSheet(ss, 'LOG_AKTIVITAS', payload, getHeaders('LOG_AKTIVITAS'));
+    } else if (action === 'resetAllData') {
+      resetAllDataBackend(ss);
+    } else {
+      result = { status: 'ERROR', message: 'Action tidak dikenal: ' + action };
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ERROR', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// BACKEND HANDLERS
+function saveMeetingDraftBackend(ss, payload) {
+  if (payload.meeting) {
+    upsertRowById(ss, 'PERTEMUAN', 'ID_Pertemuan', payload.meeting.ID_Pertemuan, payload.meeting, getHeaders('PERTEMUAN'));
+  }
+  const idPert = payload.meeting ? payload.meeting.ID_Pertemuan : '';
+  if (idPert) {
+    deleteRowsByValue(ss, 'KEHADIRAN', 'ID_Pertemuan', idPert);
+    deleteRowsByValue(ss, 'SOKONGAN_WAJIB', 'ID_Pertemuan', idPert);
+    deleteRowsByValue(ss, 'TABUNGAN', 'ID_Pertemuan', idPert);
+  }
+  if (payload.kehadiran && payload.kehadiran.length > 0) {
+    appendBatchToSheet(ss, 'KEHADIRAN', payload.kehadiran, getHeaders('KEHADIRAN'));
+  }
+  if (payload.sokongan && payload.sokongan.length > 0) {
+    appendBatchToSheet(ss, 'SOKONGAN_WAJIB', payload.sokongan, getHeaders('SOKONGAN_WAJIB'));
+  }
+  if (payload.tabungan && payload.tabungan.length > 0) {
+    appendBatchToSheet(ss, 'TABUNGAN', payload.tabungan, getHeaders('TABUNGAN'));
+  }
+}
+
+function closeMeetingBackend(ss, payload) {
+  if (payload.ID_Pertemuan) {
+    updateRowColumn(ss, 'PERTEMUAN', 'ID_Pertemuan', payload.ID_Pertemuan, 'Status', 'CLOSED');
+    updateRowColumn(ss, 'PERTEMUAN', 'ID_Pertemuan', payload.ID_Pertemuan, 'Timestamp_Ditutup', new Date().toISOString());
+    deleteRowsByValue(ss, 'KAS', 'ID_Pertemuan', payload.ID_Pertemuan);
+  }
+  if (payload.kasEntries && payload.kasEntries.length > 0) {
+    appendBatchToSheet(ss, 'KAS', payload.kasEntries, getHeaders('KAS'));
+  }
+}
+
+function addMemberBackend(ss, payload) {
+  if (payload.member) appendObjectToSheet(ss, 'ANGGOTA', payload.member, getHeaders('ANGGOTA'));
+  if (payload.schedule) appendObjectToSheet(ss, 'JADWAL_TUAN_RUMAH', payload.schedule, getHeaders('JADWAL_TUAN_RUMAH'));
+}
+
+function importMembersBatchBackend(ss, payload) {
+  if (payload.members && payload.members.length > 0) {
+    appendBatchToSheet(ss, 'ANGGOTA', payload.members, getHeaders('ANGGOTA'));
+  }
+  if (payload.schedules && payload.schedules.length > 0) {
+    appendBatchToSheet(ss, 'JADWAL_TUAN_RUMAH', payload.schedules, getHeaders('JADWAL_TUAN_RUMAH'));
+  }
+}
+
+function payDebtBackend(ss, payload) {
+  if (payload.payment) appendObjectToSheet(ss, 'PEMBAYARAN_HUTANG', payload.payment, getHeaders('PEMBAYARAN_HUTANG'));
+  if (payload.debt) {
+    upsertRowById(ss, 'HUTANG_HANDIL', 'ID_Hutang', payload.debt.ID_Hutang, payload.debt, getHeaders('HUTANG_HANDIL'));
+  }
+}
+
+function executeSafarDistributionBackend(ss, payload) {
+  if (payload.safarEntries && payload.safarEntries.length > 0) {
+    appendBatchToSheet(ss, 'PEMBAGIAN_SAFAR', payload.safarEntries, getHeaders('PEMBAGIAN_SAFAR'));
+  }
+  if (payload.payments && payload.payments.length > 0) {
+    appendBatchToSheet(ss, 'PEMBAYARAN_HUTANG', payload.payments, getHeaders('PEMBAYARAN_HUTANG'));
+  }
+}
+
+function resetAllDataBackend(ss) {
+  const sheets = ['ANGGOTA', 'PERTEMUAN', 'KEHADIRAN', 'SOKONGAN_WAJIB', 'TABUNGAN', 'HUTANG_HANDIL', 'PEMBAYARAN_HUTANG', 'KAS', 'JADWAL_TUAN_RUMAH', 'PEMBAGIAN_SAFAR', 'REKONSILIASI', 'LOG_AKTIVITAS'];
+  sheets.forEach(s => {
+    const sheet = ss.getSheetByName(s);
+    if (sheet && sheet.getLastRow() > 1) {
+      sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).clearContent();
+    }
+  });
+}
+
+// SHEET DATABASE HELPERS
+function getHeaders(sheetName) {
+  const map = {
+    ANGGOTA: ['ID_Anggota', 'Nama', 'Nama_Panggilan', 'No_HP', 'Alamat', 'Tanggal_Bergabung', 'Peran_Anggota', 'Bebas_Sokongan', 'Status', 'Catatan', 'Timestamp'],
+    PERTEMUAN: ['ID_Pertemuan', 'Tanggal', 'Status', 'ID_Tuan_Rumah', 'Biaya_Konsumsi', 'Total_Sokongan', 'Total_Tabungan', 'Total_Bersih', 'Timestamp_Dibuat', 'Timestamp_Diperbarui', 'Timestamp_Ditutup'],
+    KEHADIRAN: ['ID_Pertemuan', 'ID_Anggota', 'Status_Hadir', 'Timestamp'],
+    SOKONGAN_WAJIB: ['ID_Pertemuan', 'ID_Anggota', 'Kewajiban', 'Dibayar', 'Tunggakan', 'Status_Bayar', 'Timestamp'],
+    TABUNGAN: ['ID_Transaksi', 'ID_Anggota', 'ID_Pertemuan', 'Tanggal', 'Nominal', 'Metode', 'Keterangan', 'Timestamp'],
+    HUTANG_HANDIL: ['ID_Hutang', 'ID_Anggota', 'Tanggal_Pinjam', 'Jumlah_Awal', 'Total_Dibayar', 'Sisa_Hutang', 'Status', 'Keterangan', 'Timestamp'],
+    PEMBAYARAN_HUTANG: ['ID_Pembayaran_Hutang', 'ID_Hutang', 'ID_Anggota', 'Tanggal_Pembayaran', 'Jumlah_Pembayaran', 'Metode', 'Keterangan', 'Timestamp'],
+    KAS: ['ID_Kas', 'ID_Pertemuan', 'Tanggal', 'Jenis', 'Keterangan', 'Nominal', 'Saldo', 'Timestamp'],
+    JADWAL_TUAN_RUMAH: ['ID_Jadwal', 'Tanggal', 'ID_Anggota', 'Catatan', 'Status'],
+    PEMBAGIAN_SAFAR: ['ID_Pembagian', 'Tanggal', 'ID_Anggota', 'Tabungan_Bruto', 'Potongan_Tunggakan', 'Potongan_Hutang', 'Tabungan_Bersih', 'Timestamp'],
+    REKONSILIASI: ['ID_Reko', 'Tanggal', 'Saldo_Sistem', 'Saldo_Fisik', 'Selisih', 'Keterangan', 'Timestamp'],
+    LOG_AKTIVITAS: ['ID_Log', 'Timestamp', 'Aktivitas', 'ID_Anggota', 'ID_Pertemuan', 'ID_Transaksi', 'Keterangan']
+  };
+  return map[sheetName] || [];
+}
+
+function setupDatabase() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ['SETTINGS', 'ANGGOTA', 'PERTEMUAN', 'KEHADIRAN', 'SOKONGAN_WAJIB', 'TABUNGAN', 'HUTANG_HANDIL', 'PEMBAYARAN_HUTANG', 'KAS', 'JADWAL_TUAN_RUMAH', 'PEMBAGIAN_SAFAR', 'REKONSILIASI', 'LOG_AKTIVITAS'];
+  sheets.forEach(s => getOrCreateSheet(ss, s, getHeaders(s)));
+}
+
+function getOrCreateSheet(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    if (headers && headers.length > 0) {
+      sheet.appendRow(headers);
+    }
+  } else if (sheet.getLastRow() === 0 && headers && headers.length > 0) {
+    sheet.appendRow(headers);
+  }
+  return sheet;
+}
+
+function sheetToObjects(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) return [];
+  const headers = values[0];
+  const results = [];
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const obj = {};
+    headers.forEach((h, index) => {
+      obj[h] = row[index];
+    });
+    results.push(obj);
+  }
+  return results;
+}
+
+function appendObjectToSheet(ss, sheetName, obj, headers) {
+  const sheet = getOrCreateSheet(ss, sheetName, headers);
+  const row = headers.map(h => obj[h] !== undefined ? obj[h] : '');
+  sheet.appendRow(row);
+}
+
+function appendBatchToSheet(ss, sheetName, objectsList, headers) {
+  if (!objectsList || objectsList.length === 0) return;
+  const sheet = getOrCreateSheet(ss, sheetName, headers);
+  const rows = objectsList.map(obj => headers.map(h => obj[h] !== undefined ? obj[h] : ''));
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+}
+
+function upsertRowById(ss, sheetName, idColName, idVal, obj, headers) {
+  const sheet = getOrCreateSheet(ss, sheetName, headers);
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) {
+    appendObjectToSheet(ss, sheetName, obj, headers);
+    return;
+  }
+  const colIdx = values[0].indexOf(idColName);
+  if (colIdx === -1) {
+    appendObjectToSheet(ss, sheetName, obj, headers);
+    return;
+  }
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][colIdx]) === String(idVal)) {
+      const updatedRow = headers.map(h => obj[h] !== undefined ? obj[h] : values[i][headers.indexOf(h)]);
+      sheet.getRange(i + 1, 1, 1, headers.length).setValues([updatedRow]);
+      return;
+    }
+  }
+  appendObjectToSheet(ss, sheetName, obj, headers);
+}
+
+function updateRowColumn(ss, sheetName, idColName, idVal, targetColName, newVal) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return;
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) return;
+  const idIdx = values[0].indexOf(idColName);
+  const targetIdx = values[0].indexOf(targetColName);
+  if (idIdx === -1 || targetIdx === -1) return;
+
+  for (let i = 1; i < values.length; i++) {
+    if (String(values[i][idIdx]) === String(idVal)) {
+      sheet.getRange(i + 1, targetIdx + 1).setValue(newVal);
+      return;
+    }
+  }
+}
+
+function deleteRowsByValue(ss, sheetName, columnName, targetVal) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return;
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) return;
+  const colIdx = values[0].indexOf(columnName);
+  if (colIdx === -1) return;
+
+  for (let i = values.length - 1; i >= 1; i--) {
+    if (String(values[i][colIdx]) === String(targetVal)) {
+      sheet.deleteRow(i + 1);
+    }
+  }
+}
+
+function getDatabaseData() {
+  return {
+    SETTINGS: sheetToObjects('SETTINGS'),
+    ANGGOTA: sheetToObjects('ANGGOTA'),
+    PERTEMUAN: sheetToObjects('PERTEMUAN'),
+    KEHADIRAN: sheetToObjects('KEHADIRAN'),
+    SOKONGAN_WAJIB: sheetToObjects('SOKONGAN_WAJIB'),
+    TABUNGAN: sheetToObjects('TABUNGAN'),
+    HUTANG_HANDIL: sheetToObjects('HUTANG_HANDIL'),
+    PEMBAYARAN_HUTANG: sheetToObjects('PEMBAYARAN_HUTANG'),
+    KAS: sheetToObjects('KAS'),
+    JADWAL_TUAN_RUMAH: sheetToObjects('JADWAL_TUAN_RUMAH'),
+    PEMBAGIAN_SAFAR: sheetToObjects('PEMBAGIAN_SAFAR'),
+    REKONSILIASI: sheetToObjects('REKONSILIASI'),
+    LOG_AKTIVITAS: sheetToObjects('LOG_AKTIVITAS')
+  };
+}
+`;
+
+        function populateGasCodeDisplay() {
+            document.getElementById('gasCodeDisplay').value = GOOGLE_APPS_SCRIPT_CODE;
+        }
+
+        function copyGasCode() {
+            const textarea = document.getElementById('gasCodeDisplay');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("Kode Apps Script (Code.gs) berhasil disalin ke clipboard!", "success");
+        }
+
+        function downloadGasCode() {
+            const code = document.getElementById('gasCodeDisplay').value;
+            const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Code.gs';
+            a.click();
+            showToast("File Code.gs berhasil diunduh!", "success");
+        }
+
+        // HELPER API COMMUNICATION ENGINE
+        function cleanBaseUrl(rawUrl) {
+            if (!rawUrl) return '';
+            let url = rawUrl.trim();
+            if (url.endsWith('/')) url = url.slice(0, -1);
+            return url;
+        }
+
+        async function apiGet(action, params = {}) {
+            const baseUrl = cleanBaseUrl(APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value);
+            if (!baseUrl) throw new Error("URL Web App belum diisi");
+
+            const queryParams = new URLSearchParams({ action, ...params });
+            const targetUrl = `${baseUrl}?${queryParams.toString()}`;
+
+            try {
+                const response = await fetch(targetUrl, { method: 'GET', redirect: 'follow' });
+                const rawText = await response.text();
+
+                if (rawText.trim().startsWith('<')) {
+                    throw new Error("Penyetelan deployment Apps Script salah: Pastikan 'Who has access' di-set ke 'Anyone'.");
+                }
+
+                const json = JSON.parse(rawText);
+                return json;
+            } catch (fetchErr) {
+                console.warn("Fetch GET gagal/terblokir iframe, mencoba fallback JSONP...", fetchErr);
+                return await apiJsonp(baseUrl, action, params);
+            }
+        }
+
+        function apiJsonp(baseUrl, action, params = {}) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'gas_cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+                const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
+                const scriptUrl = `${baseUrl}?${queryParams.toString()}`;
+
+                const script = document.createElement('script');
+                script.src = scriptUrl;
+
+                const cleanup = () => {
+                    delete window[callbackName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                };
+
+                window[callbackName] = function(data) {
+                    cleanup();
+                    resolve(data);
+                };
+
+                script.onerror = function() {
+                    cleanup();
+                    reject(new Error("Gagal menghubungkan ke Google Apps Script via JSONP (CORS/Network Error)"));
+                };
+
+                document.body.appendChild(script);
+
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        cleanup();
+                        reject(new Error("Koneksi ke Google Apps Script timeout (10s)"));
+                    }
+                }, 10000);
+            });
+        }
+
+        async function apiPost(action, dataPayload = {}) {
+            const baseUrl = cleanBaseUrl(APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value);
+            if (!baseUrl) throw new Error("URL Web App belum diisi");
+
+            const requestBody = JSON.stringify({
+                action: action,
+                data: dataPayload
+            });
+
+            const response = await fetch(baseUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: requestBody,
+                redirect: 'follow'
+            });
+
+            const rawText = await response.text();
+            if (rawText.trim().startsWith('<')) {
+                throw new Error("Gagal menulis ke Apps Script: Pastikan deployment di-set ke 'Anyone'.");
+            }
+
+            const json = JSON.parse(rawText);
+            if (json.status !== 'SUCCESS') {
+                throw new Error(json.message || "Gagal memproses transaksi di server");
+            }
+            return json;
+        }
+
+        function saveWebAppUrl() {
+            const url = document.getElementById('webAppUrlInput').value.trim();
+            APP_CONFIG.webAppUrl = url;
+            showToast("URL Web App Google Apps Script berhasil disimpan!", "success");
+        }
+
+        async function testBackendConnection() {
+            const url = APP_CONFIG.webAppUrl || document.getElementById('webAppUrlInput').value.trim();
+            if (!url) {
+                showToast("Masukkan URL Web App terlebih dahulu!", "error");
+                return;
+            }
+
+            showToast("Menghubungkan ke Google Apps Script...", "info");
+
+            try {
+                const resData = await apiGet('ping');
+                if (resData && resData.status === 'SUCCESS') {
+                    showToast("Google Apps Script terhubung.", "success");
+                } else {
+                    showToast("Koneksi gagal: " + (resData ? resData.message : "Format respons tidak dikenal"), "error");
+                }
+            } catch (err) {
+                showToast("Koneksi gagal: " + err.message, "error");
+            }
+        }
+
+        function refreshData() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('fa-spin');
+            
+            if (APP_CONFIG.mode === "PROD" && APP_CONFIG.webAppUrl) {
+                fetchProductionData().then(() => {
+                    icon.classList.remove('fa-spin');
+                });
+            } else {
+                setTimeout(() => {
+                    refreshDataViews();
+                    icon.classList.remove('fa-spin');
+                    showToast("Data berhasil diperbarui!", "success");
+                }, 500);
+            }
+        }
+
+        window.onload = function() {
+            const today = new Date();
+            document.getElementById('currentDateDisplay').innerText = today.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('meetingDatePicker').value = today.toISOString().split('T')[0];
+
+            if (APP_CONFIG.mode === "DEMO") {
+                initDemoData();
+            } else {
+                clearProductionData();
+                if (APP_CONFIG.webAppUrl) {
+                    fetchProductionData();
+                }
+            }
+
+            populateGasCodeDisplay();
+
+            const hostSelect = document.getElementById('meetingHostSelect');
+            if (hostSelect) {
+                hostSelect.innerHTML = '';
+                dbState.ANGGOTA.forEach(m => {
+                    hostSelect.innerHTML += `<option value="${m.ID_Anggota}">${m.Nama} (${m.ID_Anggota})</option>`;
+                });
+            }
+
+            loadMeetingForDate();
+            refreshDataViews();
+        };
+    </script>
+</body>
+</html>
